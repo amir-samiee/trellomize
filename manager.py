@@ -36,7 +36,7 @@ class Manager:
         data = self.load_data(self.admin_file)
         if bool(data):
             if data[username] == password:
-                choice = get_bool_input(
+                choice = tools.get_bool_input(
                     f"admin '{username}' would no longer exist\nProceed?(y/n): "
                 )
                 if choice:
@@ -51,7 +51,7 @@ class Manager:
 
     # Deletes all existing data:
     def purge_data(self):
-        choice = get_bool_input("All data would be deleted\nProceed(): ")
+        choice = tools.get_bool_input("All data would be deleted\nProceed(): ")
         if choice:
             self.save_data({}, self.database)
             print("Data purged successfully.")
