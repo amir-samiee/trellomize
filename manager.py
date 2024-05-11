@@ -4,8 +4,8 @@ import tools
 
 class SystemManager:
 
-    def __init__(self, admin_file=tools.admin_file_address,
-                 users_file=tools.users_file_address, email_file=tools.emails_file_address,):
+    def __init__(self, admin_file=tools.ADMIN_FILE_PATH,
+                 users_file=tools.USERS_FILE_PATH, email_file=tools.EMAILS_FILE_PATH,):
         self.admin_file = admin_file
         self.users_file = users_file
         self.email_file = email_file

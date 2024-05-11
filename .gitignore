@@ -3,3 +3,6 @@ __pycache__
 projectEnv
 tester*
 Trellomize.pdf
+Data/emails.json
+Data/users.json
+Data/admin.json

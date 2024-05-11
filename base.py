@@ -48,14 +48,15 @@ class Status(Enum):
 
 
 class User:
-    def __init__(self, name: str, email: str, password: str,
+    def __init__(self, name: str, username: str, email: str, password: str,
                  is_active=True, leading=[], involved=[]) -> None:
         self.name = name
+        self.username = username
         self.email = email
         self.password = password
         self.is_active = is_active
-        self.leading = leading
-        self.involved = involved
+        self.leading = leading  # projects
+        self.involved = involved  # projects
 
 
 # class Comment:
