@@ -3,9 +3,16 @@ import tools
 
 
 class SystemManager:
-    def __init__(self, admin_file="data/admin_data.json", database=""):
+
+    def __init__(
+        self,
+        admin_file=tools.admin_file_address,
+        users_file=tools.users_file_address,
+        email_file=tools.emails_file_address,
+    ):
         self.admin_file = admin_file
-        self.database = database
+        self.users_file = users_file
+        self.email_file = email_file
 
     # Adds new admin if non exists:
     def create_admin(self, username: str, password: str):
@@ -20,10 +27,13 @@ class SystemManager:
     # Removes the existing admin:
     def remove_admin(self, username: str, password: str):
         data = tools.handeled_load_data(self.admin_file)
-        if bool(data):
+        if bool(data) and username in data.keys():
             if data[username] == password:
                 choice = tools.get_bool_input(
-                    f"admin '{username}' would no longer exist\nProceed?(y/n): ")
+                    f"Admin '{username}' would no longer exist\nProceed?(Y/N): ",
+                    "Yy",
+                    "Nn",
+                )
                 if choice:
                     tools.save_data({}, self.admin_file)
                     print(f"admin '{username}' deleted successfully.")
@@ -32,32 +42,44 @@ class SystemManager:
             else:
                 print("Invalid Password")
         else:
-            print("No admin exists!")
+            print("Admin does not exist!")
 
     # Deletes all existing data:
     def purge_data(self):
-        choice = tools.get_bool_input("All data would be deleted\nProceed(): ")
-        if choice:
-            tools.save_data({}, self.database)
-            print("Data purged successfully.")
-        else:
-            print("Operation canceled")
+        if self.is_admin():
+            choice = tools.get_bool_input(
+                "All data would be deleted\nProceed(Y/N): ", "Yy", "Nn"
+            )
+            if choice:
+                tools.save_data({}, self.users_file)
+                tools.save_data({}, self.email_file)
+                print("Data purged successfully.")
+            else:
+                print("Operation canceled")
 
     # Changing admin:
     def change(self, username: str, password: str):
+        if self.is_admin():
+            tools.save_data({username: password}, self.admin_file)
+            print("Admin updated successfully!")
+
+    # Confirms if current user is the admin:
+    def is_admin(self):
         data = tools.handeled_load_data(self.admin_file)
         if bool(data):
             old_pass = ""
-            for acc in data.values():
-                old_pass = acc
+            for pas in data.values():
+                old_pass = pas
             verify = input("Password: ")
             if verify != old_pass:
                 print("Wrong password!")
-                return
+                return False
+            return True
+        else:
+            print("No admin exists")
+            return False
 
-        tools.save_data({username: password}, self.admin_file)
-        print("Admin's info updated successfully!")
-
+    # Creates a parser for managing system:
     def parser(self):
         # Creating the main parser:
         parser = argparse.ArgumentParser()
@@ -108,9 +130,6 @@ class SystemManager:
         purge_data_parser = subparsers.add_parser(
             name="purge-data", help="Deletes all data available"
         )
-        purge_data_parser.add_argument(
-            "-p", "--password", required=True, help="Admin's password"
-        )
 
         return parser
 
@@ -126,7 +145,7 @@ if __name__ == "__main__":
         manager.create_admin(args.username, args.password)
 
     elif args.subcommand == "purge-data":
-        manager.purg_data()
+        manager.purge_data()
 
     elif args.subcommand == "admin":
         if args.admin_subcommand == "remove":
