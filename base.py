@@ -48,15 +48,8 @@ class Status(Enum):
 
 
 class User:
-    def __init__(
-        self,
-        name: str,
-        email: str,
-        password: str,
-        is_active=True,
-        leading=[],
-        involved=[],
-    ) -> None:
+    def __init__(self, name: str, email: str, password: str,
+                 is_active=True, leading=[], involved=[]) -> None:
         self.name = name
         self.email = email
         self.password = password
@@ -71,19 +64,9 @@ class User:
 
 
 class Task:
-    def __init__(
-        self,
-        name: str,
-        description="",
-        id=uuid.uuid4(),
-        start_time=datetime.now(),
-        end_time=datetime.now() + timedelta(days=1),
-        members=[],
-        priority=Priority.LOW,
-        status=Status.BACKLOG,
-        history=[],
-        comments=[],
-    ) -> None:
+    def __init__(self, name: str, description="", id=uuid.uuid4(), start_time=datetime.now(),
+                 end_time=datetime.now() + timedelta(days=1), members=[], priority=Priority.LOW,
+                 status=Status.BACKLOG, history=[], comments=[],) -> None:
         self.name = name
         self.description = description
         self.id = id

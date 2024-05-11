@@ -4,12 +4,8 @@ import tools
 
 class SystemManager:
 
-    def __init__(
-        self,
-        admin_file=tools.admin_file_address,
-        users_file=tools.users_file_address,
-        email_file=tools.emails_file_address,
-    ):
+    def __init__(self, admin_file=tools.admin_file_address,
+                 users_file=tools.users_file_address, email_file=tools.emails_file_address,):
         self.admin_file = admin_file
         self.users_file = users_file
         self.email_file = email_file
@@ -30,10 +26,7 @@ class SystemManager:
         if bool(data) and username in data.keys():
             if data[username] == password:
                 choice = tools.get_bool_input(
-                    f"Admin '{username}' would no longer exist\nProceed?(Y/N): ",
-                    "Yy",
-                    "Nn",
-                )
+                    f"Admin '{username}' would no longer exist\nProceed?(Y/N): ","Yy", "Nn", False)
                 if choice:
                     tools.save_data({}, self.admin_file)
                     print(f"admin '{username}' deleted successfully.")
@@ -48,7 +41,7 @@ class SystemManager:
     def purge_data(self):
         if self.is_admin():
             choice = tools.get_bool_input(
-                "All data would be deleted\nProceed(Y/N): ", "Yy", "Nn"
+                "All data would be deleted\nProceed(Y/N): ", "Yy", "Nn", False
             )
             if choice:
                 tools.save_data({}, self.users_file)

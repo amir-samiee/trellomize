@@ -6,7 +6,7 @@ users_file_address = "Data/users.json"
 emails_file_address = "Data/emails.json"
 
 
-def get_bool_input(massage: str , true: str , false: str, cls=True) -> None:
+def get_bool_input(massage: str, true: str, false: str, cls=True) -> None:
     rep = 0
     while True:
         if cls:
