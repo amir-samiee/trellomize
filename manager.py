@@ -4,10 +4,12 @@ import tools
 
 class SystemManager:
     def __init__(self, admin_file=tools.ADMIN_FILE_PATH,
-                 users_file=tools.USERS_FILE_PATH, email_file=tools.EMAILS_FILE_PATH,) -> None:
+                 users_file=tools.USERS_FILE_PATH, emails_file=tools.EMAILS_FILE_PATH,
+                 projects_file=tools.PROJECTS_FILE_PATH, ) -> None:
         self.admin_file = admin_file
         self.users_file = users_file
-        self.email_file = email_file
+        self.emails_file = emails_file
+        self.projects_file = projects_file
 
     # Adds new admin if non exists:
     def create_admin(self, username: str, password: str) -> None:
@@ -44,7 +46,8 @@ class SystemManager:
             )
             if choice:
                 tools.save_data({}, self.users_file)
-                tools.save_data({}, self.email_file)
+                tools.save_data({}, self.emails_file)
+                tools.save_data({}, self.projects_file)
                 print("Data purged successfully.")
             else:
                 print("Operation canceled")
