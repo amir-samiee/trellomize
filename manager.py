@@ -1,9 +1,9 @@
 import argparse
 import tools
 
-class SystemManager:
 
-    def __init__(self, admin_file="admin_data.json", database=""):
+class SystemManager:
+    def __init__(self, admin_file="data/admin_data.json", database=""):
         self.admin_file = admin_file
         self.database = database
 
@@ -23,8 +23,7 @@ class SystemManager:
         if bool(data):
             if data[username] == password:
                 choice = tools.get_bool_input(
-                    f"admin '{username}' would no longer exist\nProceed?(y/n): "
-                )
+                    f"admin '{username}' would no longer exist\nProceed?(y/n): ")
                 if choice:
                     tools.save_data({}, self.admin_file)
                     print(f"admin '{username}' deleted successfully.")
@@ -57,26 +56,28 @@ class SystemManager:
                 return
 
         tools.save_data({username: password}, self.admin_file)
-        print("Admins info updated successfully!")
+        print("Admin's info updated successfully!")
 
     def parser(self):
         # Creating the main parser:
         parser = argparse.ArgumentParser()
-        subparsers = parser.add_subparsers(dest="subcommand", title="subcommands")
+        subparsers = parser.add_subparsers(
+            dest="subcommand", title="subcommands")
 
         # Creating admin parser
         create_admin_parser = subparsers.add_parser(
             name="create-admin", help="Creates an admin"
         )
         create_admin_parser.add_argument(
-            "-u", "--username", required=True, help="Admins username", metavar=""
+            "-u", "--username", required=True, help="Admin's username"
         )
         create_admin_parser.add_argument(
-            "-p", "--password", required=True, help="Admins password", metavar=""
+            "-p", "--password", required=True, help="Admin's password"
         )
 
         # Admin parser:
-        admin_parser = subparsers.add_parser(name="admin", help="Admin related tasks")
+        admin_parser = subparsers.add_parser(
+            name="admin", help="Admin related tasks")
         admin_subparsers = admin_parser.add_subparsers(
             dest="admin_subcommand", title="admin_subcomands"
         )
@@ -86,10 +87,10 @@ class SystemManager:
             name="remove", help="Removes admin"
         )
         remove_admin_parser.add_argument(
-            "-u", "--username", required=True, help="Admins username", metavar=""
+            "-u", "--username", required=True, help="Admin's username"
         )
         remove_admin_parser.add_argument(
-            "-p", "--password", required=True, help="Admins password", metavar=""
+            "-p", "--password", required=True, help="Admin's password"
         )
 
         # Change Admin info parser:
@@ -97,10 +98,10 @@ class SystemManager:
             name="change", help="Changes admin"
         )
         change_info_parser.add_argument(
-            "-u", "--username", required=True, help="Admins new username", metavar=""
+            "-u", "--username", required=True, help="Admin's new username"
         )
         change_info_parser.add_argument(
-            "-p", "--password", required=True, help="Admins new password", metavar=""
+            "-p", "--password", required=True, help="Admin's new password"
         )
 
         # Purging data parser:
@@ -108,7 +109,7 @@ class SystemManager:
             name="purge-data", help="Deletes all data available"
         )
         purge_data_parser.add_argument(
-            "-p", "--password", required=True, help="Admins password", metavar=""
+            "-p", "--password", required=True, help="Admin's password"
         )
 
         return parser
