@@ -3,7 +3,6 @@ import tools
 
 
 class SystemManager:
-
     def __init__(self, admin_file=tools.ADMIN_FILE_PATH,
                  users_file=tools.USERS_FILE_PATH, email_file=tools.EMAILS_FILE_PATH,) -> None:
         self.admin_file = admin_file
@@ -11,7 +10,6 @@ class SystemManager:
         self.email_file = email_file
 
     # Adds new admin if non exists:
-
     def create_admin(self, username: str, password: str) -> None:
         data = dict(tools.handeled_load_data(self.admin_file))
         if bool(data):
@@ -22,7 +20,6 @@ class SystemManager:
             print(f"Admin '{username}' saved successfully.")
 
     # Removes the existing admin:
-
     def remove_admin(self, username: str, password: str) -> None:
         data = tools.handeled_load_data(self.admin_file)
         if bool(data) and username in data.keys():
@@ -40,7 +37,6 @@ class SystemManager:
             print("Admin does not exist!")
 
     # Deletes all existing data:
-
     def purge_data(self) -> None:
         if self.is_admin():
             choice = tools.get_bool_input(
@@ -54,14 +50,12 @@ class SystemManager:
                 print("Operation canceled")
 
     # Changing admin:
-
     def change(self, username: str, password: str) -> None:
         if self.is_admin():
             tools.save_data({username: password}, self.admin_file)
             print("Admin updated successfully!")
 
     # Confirms if current user is the admin:
-
     def is_admin(self) -> bool:
         data = tools.handeled_load_data(self.admin_file)
         if bool(data):
@@ -78,7 +72,6 @@ class SystemManager:
             return False
 
     # Creates a parser for managing system:
-
     def parser(self) -> argparse:
         # Creating the main parser:
         parser = argparse.ArgumentParser()
