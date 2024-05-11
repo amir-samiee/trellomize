@@ -9,7 +9,7 @@ class SystemManager:
 
     # Adds new admin if non exists:
     def create_admin(self, username: str, password: str):
-        data = dict(tools.load_data(self.admin_file))
+        data = dict(tools.handeled_load_data(self.admin_file))
         if bool(data):
             print("An admin already exists!")
         else:
@@ -19,7 +19,7 @@ class SystemManager:
 
     # Removes the existing admin:
     def remove_admin(self, username: str, password: str):
-        data = tools.load_data(self.admin_file)
+        data = tools.handeled_load_data(self.admin_file)
         if bool(data):
             if data[username] == password:
                 choice = tools.get_bool_input(
@@ -46,7 +46,7 @@ class SystemManager:
 
     # Changing admin:
     def change(self, username: str, password: str):
-        data = tools.load_data(self.admin_file)
+        data = tools.handeled_load_data(self.admin_file)
         if bool(data):
             old_pass = ""
             for acc in data.values():

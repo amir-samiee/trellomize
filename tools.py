@@ -12,16 +12,19 @@ def get_bool_input(massage: str):
         rep += 1
 
 # Writes data into given json file:
-def save_data(self, data: dict, saving_file: str):
+def save_data(data: dict, saving_file: str):
     with open(saving_file, "w") as data_file:
         json.dump(data, data_file)
 
-        
 # Loads data from the given json file:
-def load_data(self, loading_file: str):
+def load_data(loading_file: str):
+    with open(loading_file, "r") as data_file:
+        return json.load(data_file)
+
+# load_data but retruns empty dict in case of an error:
+def handeled_load_data(loading_file: str):
     try:
-        with open(loading_file, "r") as data_file:
-            return json.load(data_file)
+        load_data(loading_file)
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
