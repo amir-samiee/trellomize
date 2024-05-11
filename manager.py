@@ -5,13 +5,14 @@ import tools
 class SystemManager:
 
     def __init__(self, admin_file=tools.admin_file_address,
-                 users_file=tools.users_file_address, email_file=tools.emails_file_address,):
+                 users_file=tools.users_file_address, email_file=tools.emails_file_address,) -> None:
         self.admin_file = admin_file
         self.users_file = users_file
         self.email_file = email_file
 
     # Adds new admin if non exists:
-    def create_admin(self, username: str, password: str):
+
+    def create_admin(self, username: str, password: str) -> None:
         data = dict(tools.handeled_load_data(self.admin_file))
         if bool(data):
             print("An admin already exists!")
@@ -21,12 +22,13 @@ class SystemManager:
             print(f"Admin '{username}' saved successfully.")
 
     # Removes the existing admin:
-    def remove_admin(self, username: str, password: str):
+
+    def remove_admin(self, username: str, password: str) -> None:
         data = tools.handeled_load_data(self.admin_file)
         if bool(data) and username in data.keys():
             if data[username] == password:
                 choice = tools.get_bool_input(
-                    f"Admin '{username}' would no longer exist\nProceed?(Y/N): ","Yy", "Nn", False)
+                    f"Admin '{username}' would no longer exist\nProceed?(Y/N): ", "Yy", "Nn", False)
                 if choice:
                     tools.save_data({}, self.admin_file)
                     print(f"admin '{username}' deleted successfully.")
@@ -38,7 +40,8 @@ class SystemManager:
             print("Admin does not exist!")
 
     # Deletes all existing data:
-    def purge_data(self):
+
+    def purge_data(self) -> None:
         if self.is_admin():
             choice = tools.get_bool_input(
                 "All data would be deleted\nProceed(Y/N): ", "Yy", "Nn", False
@@ -51,13 +54,15 @@ class SystemManager:
                 print("Operation canceled")
 
     # Changing admin:
-    def change(self, username: str, password: str):
+
+    def change(self, username: str, password: str) -> None:
         if self.is_admin():
             tools.save_data({username: password}, self.admin_file)
             print("Admin updated successfully!")
 
     # Confirms if current user is the admin:
-    def is_admin(self):
+
+    def is_admin(self) -> bool:
         data = tools.handeled_load_data(self.admin_file)
         if bool(data):
             old_pass = ""
@@ -73,7 +78,8 @@ class SystemManager:
             return False
 
     # Creates a parser for managing system:
-    def parser(self):
+
+    def parser(self) -> argparse:
         # Creating the main parser:
         parser = argparse.ArgumentParser()
         subparsers = parser.add_subparsers(

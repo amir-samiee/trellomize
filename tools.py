@@ -22,19 +22,19 @@ def get_bool_input(massage: str, true: str, false: str, cls=True) -> None:
 
 
 # Writes data into given json file:
-def save_data(data: dict, saving_file: str):
+def save_data(data: dict, saving_file: str) -> None:
     with open(saving_file, "w") as data_file:
         json.dump(data, data_file)
 
 
 # Loads data from the given json file:
-def load_data(loading_file: str):
+def load_data(loading_file: str) -> dict:
     with open(loading_file, "r") as data_file:
         return json.load(data_file)
 
 
 # load_data but retruns empty dict in case of an error:
-def handeled_load_data(loading_file: str):
+def handeled_load_data(loading_file: str) -> dict:
     try:
         return load_data(loading_file)
     except (FileNotFoundError, json.JSONDecodeError):
