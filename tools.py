@@ -4,20 +4,6 @@ from typing import Any, Iterable
 from rich.console import Console
 from rich.theme import Theme
 
-COLORS = {"black": "\x1b[30m",
-          "red": "\x1b[31m",
-          "green": "\x1b[32m",
-          "yellow": "\x1b[33m",
-          "blue": "\x1b[34m",
-          "magenta": "\x1b[35m",
-          "cyan": "\x1b[36m",
-          "white": "\x1b[37m",
-          "terminal_green": "\033[38;2;0;166;125m",
-          "gray": "\033[90m",
-          "blink": "\033[5m",
-          "strikethrough": "\033[9m",
-          "reset": "\x1b[0m"}
-
 theme = Theme({
     "error": "bold red",
     "warning": "bold yellow",
@@ -37,14 +23,14 @@ def clear_screen():
     system("cls||clear")
 
 
-def get_bool_input(massage: str, true: str, false: str, cls=True) -> bool:
+def get_bool_input(message: str, true: str, false: str, cls=True) -> bool:
     rep = 0
     while True:
         if cls:
             clear_screen()
         if rep > 0:
             print("Invalid input")
-        choice = input(massage)
+        choice = input(message)
         if choice in true:
             return True
         elif choice in false:
@@ -52,7 +38,7 @@ def get_bool_input(massage: str, true: str, false: str, cls=True) -> bool:
         rep += 1
 
 
-def get_input(message: str, accepted_values: Iterable, cls=True, error_message="invalid input"):
+def get_input(message: str, accepted_values: Iterable, cls=True, error_message="invalid input", return_type=str):
     accepted_values = [str(x) for x in accepted_values]
 
     error_sign = "$$error$$"
@@ -66,16 +52,16 @@ def get_input(message: str, accepted_values: Iterable, cls=True, error_message="
 
         replacement = ""
         if not is_valid:
-            replacement = COLORS["red"] + \
-                error_message + COLORS["reset"]
+            replacement = "[red]" + error_message + "[/]"
 
         is_valid = True
         modified_message = message.replace(error_sign, replacement)
-        choice = input(modified_message)
+        print(modified_message, end="")
+        choice = input()
         if choice not in accepted_values:
             is_valid = False
         if is_valid:
-            return choice
+            return return_type(choice)
 
 
 # Writes data into given json file:
@@ -101,5 +87,7 @@ def handeled_load_data(loading_file: str) -> dict:
         return {}
 
 
+TITLES_FILE_PATH = "Data/titles.txt"
 TITLES = load_data(TITLES_FILE_PATH).split("\n\n")
 TITLE = TITLES[5]
+COLORED_TITLE = f"[cyan]{TITLE}[/]"

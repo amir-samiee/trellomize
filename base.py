@@ -1,35 +1,7 @@
-"""
-login
-    menu:
-        projects:
-            new project
-            my projects:
-                leading (involved + ...)
-                    *projects
-                        add member
-                        remove member
-                        add task
-                        info
-                            change
-                        delete project
-                        *tasks (brief)
-                            add member
-                            remove member
-                            delete task
-                involved
-                    *projects
-                        info
-                        *tasks (brief)
-                            (change info)
-                            add comment
-        edit profile
-        logout
-        exit
-"""
-
 import uuid
 from datetime import datetime, timedelta
 from enum import Enum
+
 
 
 class Priority(Enum):
