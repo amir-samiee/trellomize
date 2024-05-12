@@ -77,7 +77,7 @@ class SystemManager:
 
     def ban(self, username: str):
         if self.is_admin():
-            # deactivating the user
+            base.User.instances[username]['is_active'] = False
             print(f"User {username} banned")
 
     def view(self, substring=''):
