@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timedelta
+from multipledispatch import dispatch
 from enum import Enum
 
 
@@ -90,12 +91,16 @@ class User:
 
 
 class Task:
+    instances = dict()
+
     def __init__(self, name: str, description="", id=uuid.uuid4(), start_time=datetime.now(),
                  end_time=datetime.now() + timedelta(days=1), members=[], priority=Priority.LOW,
                  status=Status.BACKLOG, history=[], comments=[],) -> None:
+        self.id = id
+        Task.instances = dict()
+
         self.name = name
         self.description = description
-        self.id = id
         self.start_time = start_time
         self.end_time = end_time
         self.members = members
@@ -104,10 +109,84 @@ class Task:
         self.history = history
         self.comments = comments
 
+    @property
+    def name(self):
+        return Task.instances[self.id]['name']
+
+    @name.setter
+    def name(self, new_name):
+        Task.instances[self.id]['name'] = new_name
+
+    @property
+    def description(self):
+        return Task.instances[self.id]['description']
+
+    @description.setter
+    def description(self, new_description):
+        Task.instances[self.id]['description'] = new_description
+
+    @property
+    def start_time(self):
+        return Task.instances[self.id]['start_time']
+
+    @start_time.setter
+    def start_time(self, new_start_time):
+        Task.instances[self.id]['start_time'] = new_start_time
+
+    @property
+    def end_time(self):
+        return Task.instances[self.id]['end_time']
+
+    @end_time.setter
+    def end_time(self, new_end_time):
+        Task.instances[self.id]['end_time'] = new_end_time
+
+    @property
+    def members(self):
+        return Task.instances[self.id]['members']
+
+    @members.setter
+    def members(self, new_members):
+        Task.instances[self.id]['members'] = new_members
+
+    @property
+    def priority(self):
+        return Task.instances[self.id]['priority']
+
+    @priority.setter
+    def priority(self, new_priority):
+        Task.instances[self.id]['priority'] = new_priority
+
+    @property
+    def status(self):
+        return Task.instances[self.id]['status']
+
+    @status.setter
+    def status(self, new_status):
+        Task.instances[self.id]['status'] = new_status
+
+    @property
+    def history(self):
+        return Task.instances[self.id]['history']
+
+    @history.setter
+    def history(self, new_history):
+        Task.instances[self.id]['history'] = new_history
+
+    @property
+    def comments(self):
+        return Task.instances[self.id]['comments']
+
+    @comments.setter
+    def comments(self, new_comments):
+        Task.instances[self.id]['comments'] = new_comments
+
 
 class Project:
     instances = dict()
-    def __init__(self, title: str, id: str, leader: User, members=[], tasks=[]) -> None:
+
+    @dispatch(str, str, str, list, list)
+    def __init__(self, title: str, id: str, leader: str, members=[], tasks=[]) -> None:
         self.id = id
 
         # Creating and setting the data for instances
@@ -116,6 +195,14 @@ class Project:
         data['leader'] = leader
         data['members'] = members  # list of User instances
         data['tasks'] = tasks      # list of task identifiers or objects
+        Project.instances[id] = data
+
+    @dispatch(str)
+    def __init__(self, id: str):
+        if id in Project.instances.keys:
+            self.id = id
+        else:
+            raise KeyError("Project not defined yet")
 
     @property
     def title(self):
