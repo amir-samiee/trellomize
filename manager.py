@@ -1,6 +1,5 @@
 import argparse
 import tools
-import base
 
 console = tools.console
 
@@ -78,11 +77,18 @@ class SystemManager:
 
     def ban(self, username: str):
         if self.is_admin():
-            base.User.instances[username]['is_active'] = False
-            console.print(f"User {username} banned", style='success')
+            
+            data = tools.handeled_load_data(self.users_file)
+            if username not in data.keys():
+                console.print(f"User '{username}' does not exist!")
+                return
+            
+            data[username]['is_active'] = False
+            tools.save_data(data , self.users_file)
+            console.print(f"User '{username}' banned", style='success')
 
     def view(self, substring=''):
-        user_dict = base.User.instances
+        user_dict = tools.handeled_load_data(self.users_file)
         i = 1
         for username in user_dict.keys():
             if substring in username:
