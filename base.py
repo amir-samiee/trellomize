@@ -101,12 +101,16 @@ class User:
 class Task:
     instances = dict()
 
-    def __init__(self, id: str, name="", description="", start_time=datetime.now(),
+    def __init__(self, name="", description="", start_time=datetime.now(),
                  end_time=datetime.now() + timedelta(days=1), members=set(), priority=Priority.LOW,
-                 status=Status.BACKLOG, history=[], comments=[],) -> None:
+                 status=Status.BACKLOG, history=[], comments=[], **kwargs) -> None:
+        id = None
+        if "id" in kwargs:
+            id = kwargs["id"]
+        else:
+            id = str(uuid.uuid4())
         self.id = id
-        if id == "new":
-            self.id = str(uuid.uuid4())
+        if id not in Task.instances.keys():
             data = dict()
             data["name"] = name
             data["description"] = description
