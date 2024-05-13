@@ -19,29 +19,37 @@ class Status(Enum):
     ARCHIVED = 5
 
 
+class Task:
+    pass
+
+
+class Project:
+    pass
+
+
 class User:
     instances = dict()
 
-    def __init__(self, name: str, username: str, email: str, password: str,
-                 is_active=True, leading_id=[], involved_id=[]) -> None:
+    def __init__(self, username: str, name="", email="", password="",
+                 is_active=True) -> None:
         self.username = username
-
-        # Creating and setting the data for instances
-        data = dict()
-        data['name'] = name
-        data['email'] = email
-        data['password'] = password
-        data['is_active'] = is_active
-        data['leading_id'] = leading_id  # projects
-        data['involved_id'] = involved_id  # projects
-        User.instances[username] = data
+        if username not in User.instances.keys():
+            # Creating and setting the data for instances
+            data = dict()
+            data['name'] = name
+            data['email'] = email
+            data['password'] = password
+            data['is_active'] = is_active
+            data['leading'] = set()  # projects
+            data['involved'] = set()  # projects
+            User.instances[username] = data
 
     @property
     def name(self):
         return User.instances[self.username]['name']
 
     @name.setter
-    def name(self, new_name):
+    def name(self, new_name: str):
         User.instances[self.username]['name'] = new_name
 
     @property
@@ -49,7 +57,7 @@ class User:
         return User.instances[self.username]['email']
 
     @email.setter
-    def email(self, new_email):
+    def email(self, new_email: str):
         User.instances[self.username]['email'] = new_email
 
     @property
@@ -57,7 +65,7 @@ class User:
         return User.instances[self.username]['password']
 
     @password.setter
-    def password(self, new_password):
+    def password(self, new_password: str):
         User.instances[self.username]['password'] = new_password
 
     @property
@@ -65,24 +73,24 @@ class User:
         return User.instances[self.username]['is_active']
 
     @is_active.setter
-    def is_active(self, new_status):
+    def is_active(self, new_status: Status):
         User.instances[self.username]['is_active'] = new_status
 
     @property
     def leading(self):
-        return User.instances[self.username]['leading_id']
+        return User.instances[self.username]['leading']
 
     @leading.setter
-    def leading(self, new_leading):
-        User.instances[self.username]['leading_id'] = new_leading
+    def leading(self, new_leading: list):
+        User.instances[self.username]['leading'] = new_leading
 
     @property
     def involved(self):
-        return User.instances[self.username]['involved_id']
+        return User.instances[self.username]['involved']
 
     @involved.setter
-    def involved(self, new_involved):
-        User.instances[self.username]['involved_id'] = new_involved
+    def involved(self, new_involved: list):
+        User.instances[self.username]['involved'] = new_involved
 
 
 # class Comment:
@@ -93,21 +101,23 @@ class User:
 class Task:
     instances = dict()
 
-    def __init__(self, name: str, description="", id=uuid.uuid4(), start_time=datetime.now(),
-                 end_time=datetime.now() + timedelta(days=1), members=[], priority=Priority.LOW,
+    def __init__(self, id: str, name="", description="", start_time=datetime.now(),
+                 end_time=datetime.now() + timedelta(days=1), members=set(), priority=Priority.LOW,
                  status=Status.BACKLOG, history=[], comments=[],) -> None:
         self.id = id
-        Task.instances = dict()
-
-        self.name = name
-        self.description = description
-        self.start_time = start_time
-        self.end_time = end_time
-        self.members = members
-        self.priority = priority
-        self.status = status
-        self.history = history
-        self.comments = comments
+        if id == "new":
+            self.id = str(uuid.uuid4())
+            data = dict()
+            data["name"] = name
+            data["description"] = description
+            data["start_time"] = start_time
+            data["end_time"] = end_time
+            data["members"] = members
+            data["priority"] = priority
+            data["status"] = status
+            data["history"] = history
+            data["comments"] = comments
+            Task.instances[self.id] = data
 
     @property
     def name(self):
@@ -185,24 +195,20 @@ class Task:
 class Project:
     instances = dict()
 
-    @dispatch(str, str, str, list, list)
-    def __init__(self, title: str, id: str, leader: str, members=[], tasks=[]) -> None:
+    def __init__(self, id: str, title="", leader=None, members=set(), tasks=set()) -> None:
         self.id = id
+        if id not in Project.instances.keys():
+            leader.leading.add(self)
+            for member in members:
+                member.involved.add(self)
 
-        # Creating and setting the data for instances
-        data = Project.instances[id] = dict()
-        data['title'] = title
-        data['leader'] = leader
-        data['members'] = members  # list of User instances
-        data['tasks'] = tasks      # list of task identifiers or objects
-        Project.instances[id] = data
-
-    @dispatch(str)
-    def __init__(self, id: str):
-        if id in Project.instances.keys:
-            self.id = id
-        else:
-            raise KeyError("Project not defined yet")
+            # Creating and setting the data for instances
+            data = dict()
+            data['title'] = title
+            data['leader'] = leader
+            data['members'] = members  # list of User instances
+            data['tasks'] = tasks      # list of task identifiers or objects
+            Project.instances[id] = data
 
     @property
     def title(self):
