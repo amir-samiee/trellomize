@@ -2,6 +2,7 @@ import argparse
 import tools
 import base
 
+console = tools.console
 
 class SystemManager:
     def __init__(self, admin_file=tools.ADMIN_FILE_PATH,
@@ -16,11 +17,11 @@ class SystemManager:
     def create_admin(self, username: str, password: str) -> None:
         data = dict(tools.handeled_load_data(self.admin_file))
         if bool(data):
-            print("An admin already exists!")
+            console.print("An admin already exists!", style='error')
         else:
             data[username] = password
             tools.save_data(data, self.admin_file)
-            print(f"Admin '{username}' saved successfully.")
+            console.print(f"Admin '{username}' saved successfully.", style='success')
 
     # Removes the existing admin:
     def remove_admin(self, username: str, password: str) -> None:
@@ -31,13 +32,13 @@ class SystemManager:
                     f"Admin '{username}' would no longer exist\nProceed?(Y/N): ", "Yy", "Nn", False)
                 if choice:
                     tools.save_data({}, self.admin_file)
-                    print(f"admin '{username}' deleted successfully.")
+                    console.print(f"admin '{username}' deleted successfully.", style='success')
                 else:
-                    print("Operation canceled")
+                    console.print("Operation canceled", style='warning')
             else:
-                print("Invalid Password")
+                console.print("Invalid Password", style='error')
         else:
-            print("Admin does not exist!")
+            console.print("Admin does not exist!", style='error')
 
     # Deletes all existing data:
     def purge_data(self) -> None:
@@ -49,15 +50,15 @@ class SystemManager:
                 tools.save_data({}, self.users_file)
                 tools.save_data({}, self.emails_file)
                 tools.save_data({}, self.projects_file)
-                print("Data purged successfully.")
+                console.print("Data purged successfully.", style='success')
             else:
-                print("Operation canceled")
+                console.print("Operation canceled", style='warning')
 
     # Changing admin:
     def change(self, username: str, password: str) -> None:
         if self.is_admin():
             tools.save_data({username: password}, self.admin_file)
-            print("Admin updated successfully!")
+            console.print("Admin updated successfully!", style='success')
 
     # Confirms if current user is the admin:
     def is_admin(self) -> bool:
@@ -68,24 +69,24 @@ class SystemManager:
                 old_pass = pas
             verify = input("Password: ")
             if verify != old_pass:
-                print("Wrong password!")
+                console.print("Wrong password!", style='error')
                 return False
             return True
         else:
-            print("No admin exists")
+            console.print("No admin exists", style='error')
             return False
 
     def ban(self, username: str):
         if self.is_admin():
             base.User.instances[username]['is_active'] = False
-            print(f"User {username} banned")
+            console.print(f"User {username} banned", style='success')
 
     def view(self, substring=''):
         user_dict = base.User.instances
         i = 1
         for username in user_dict.keys():
             if substring in username:
-                print(f"{i+1}- {username}")
+                console.print(f"{i+1}- {username}")
 
     # Creates a parser for managing system:
     def parser(self) -> argparse:

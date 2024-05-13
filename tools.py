@@ -30,8 +30,9 @@ def get_bool_input(message: str, true: str, false: str, cls=True) -> bool:
         if cls:
             clear_screen()
         if rep > 0:
-            print("Invalid input")
-        choice = input(message)
+            console.print("Invalid input", style='error')
+        console.print(message, style='warning')
+        choice = input()
         if choice in true:
             return True
         elif choice in false:
