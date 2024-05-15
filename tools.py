@@ -14,6 +14,7 @@ print = console.print
 
 # file paths
 ADMIN_FILE_PATH = "Data/admin.json"
+TASKS_FILE_PATH = "Data/tasks.json"
 USERS_FILE_PATH = "Data/users.json"
 EMAILS_FILE_PATH = "Data/emails.json"
 PROJECTS_FILE_PATH = "Data/projects.json"
