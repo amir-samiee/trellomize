@@ -26,6 +26,10 @@ class Status(Enum):
 status_dict = {x.name: x for x in Status}
 
 
+class User:
+    pass
+
+
 class Task:
     pass
 
@@ -64,7 +68,7 @@ class User:
             data['involved'] = set()  # projects
             User.instances[username] = data
 
-    def cast(user):
+    def cast(user: (User | str)) -> (User | None):
         if not User.exists(user):
             return None
         elif type(user) == str:
@@ -73,7 +77,7 @@ class User:
             return user
         else:
             raise ValueError(f'wrong type argument({type(user)})')
-        
+
     def dump(self) -> dict:
         data = User.instances[self.username].copy()
         # data["leading"] = [x.id for x in data["leading"]]
@@ -150,9 +154,9 @@ class User:
     def involved(self, new_involved: list):
         User.instances[self.username]['involved'] = new_involved
 
-    def exists(user):
+    def exists(user: (User | str)) -> bool:
         if type(user) == str:
-            return user in User.instances.keys()        
+            return user in User.instances.keys()
         elif type(user) == User:
             return user.username in User.instances.keys()
         raise ValueError(f'wrong type of argument({type(user)})')
@@ -186,8 +190,8 @@ class Task:
             data["history"] = history
             data["comments"] = comments
             Task.instances[self.id] = data
-    
-    def cast(task):
+
+    def cast(task: (Task | str)) -> (Task | None):
         if not Task.exists(task):
             return None
         if type(task) == str:
@@ -196,7 +200,7 @@ class Task:
             return task
         else:
             raise ValueError(f'wrong type argument({type(task)})')
-        
+
     def dump(self):
         data = Task.instances[self.id].copy()
         data["start_time"] = str(data["start_time"])
@@ -289,31 +293,32 @@ class Task:
     def comments(self, new_comments):
         Task.instances[self.id]['comments'] = new_comments
 
-    def exists(self, task):
+    def exists(self, task: (Task | str)) -> bool:
         if type(task) == str:
-            return task in Task.instances.keys()        
+            return task in Task.instances.keys()
         elif type(task) == Task:
             return task.id in Task.instances.keys()
         raise ValueError(f'wrong type of argument({type(task)})')
-    
-    
-    def add_member(self, user):
-        user = User.cast(user)        
+
+    def add_member(self, user: (User | str)) -> None:
+        user = User.cast(user)
         # Check if the user exists:
         if user == None:
             console.print(f"User does not exist", style='error')
             return
-        
+
         task_members = self.members
         if user in task_members:
-            console.print(f"User '{user.username}' is already a member of the task", style='error')
+            console.print(
+                f"User '{user.username}' is already a member of the task", style='error')
             return
-        
+
         # Add user to the project:
         task_members.add(user)
         self.members = task_members
 
-        console.print(f"User '{user.username}' added succesfully", style='success')
+        console.print(
+            f"User '{user.username}' added succesfully", style='success')
 
 
 class Project:
@@ -333,6 +338,16 @@ class Project:
             data['members'] = members  # list of User instances
             data['tasks'] = tasks      # list of task identifiers or objects
             Project.instances[id] = data
+
+    def cast(project: (Project | str)) -> (Project | None):
+        if not Project.exists(project):
+            return None
+        elif type(project) == str:
+            return Project(project)
+        elif type(project) == Project:
+            return project
+        else:
+            raise ValueError(f'wrong type argument({type(project)})')
 
     @property
     def title(self):
@@ -365,51 +380,55 @@ class Project:
     @tasks.setter
     def tasks(self, new_tasks):
         Project.instances[self.id]['tasks'] = new_tasks
-    
-    def is_member(self, user):
+
+    def exists(project: (Project | str)) -> bool:
+        if type(project) == str:
+            return project in Project.instances.keys()
+        elif type(project) == Project:
+            return project.id in Project.instances.keys()
+        raise ValueError(f'wrong type of argument({type(project)})')
+
+    def is_member(self, user: (User | str)) -> bool:
         user = User.cast(user)
         if user == None:
             print('User does not exist', style='error')
             return
         return user in self.members
-    
-    def is_leader(self, user):
+
+    def is_leader(self, user: (User | str)) -> bool:
         user = User.cast(user)
         if user == None:
             print('User does not exist', style='error')
             return
-        return user == self.leader            
+        return user == self.leader
 
-    def task_belongs(self, task):
-        if type(task) == Task:
-            return task in self.tasks
-        elif type(task) == str:
-            return task in [t.id for t in self.tasks]
-        raise ValueError(f'wrong type argument({type(task)})')
-    
-    def add_member(self, user):
-        user = User.cast(user)        
+    def task_belongs(self, task: (Task | str)) -> bool:
+        task = Task.cast(task)
+        if task == None:
+            print('Task does not exist', style='error')
+        return task in self.tasks
+
+    def add_member(self, user: (User | str)) -> None:
+        user = User.cast(user)
         # Check if the user exists:
         if user == None:
             console.print(f"User does not exist", style='error')
             return
-
         # Check if the user is not already in the project:
         if self.is_member(user) or self.is_leader(user):
-            console.print(f"User '{user.username}' is already a part of the project", style='error')
+            console.print(
+                f"User '{user.username}' is already a part of the project", style='error')
             return
-        
         # Add user to the project:
         members = self.members
         members.add(user)
         self.members = members
+        console.print(
+            f"User '{user.username}' added succesfully", style='success')
 
-        console.print(f"User '{user.username}' added succesfully", style='success')
+    def remove_member(self, user: (User | str)) -> None:
 
-    
-    def remove_member(self, user):
-        
-        user = User.cast(user)        
+        user = User.cast(user)
         # Check if the user exists:
         if user == None:
             console.print(f"User does not exist", style='error')
@@ -419,29 +438,34 @@ class Project:
         if self.is_leader(user):
             console.print('Cant remove the leader', style='error')
             return
-        
+
         # Check if the user is a member of project:
         if not self.is_member(user):
-            console.print(f"User '{user.username}' is not a part of the project", style='error')
+            console.print(
+                f"User '{user.username}' is not a part of the project", style='error')
             return
-        
+
         # Removing the user:
         members = self.members
         members.remove(user)
         self.members = members
-        console.print(f"User '{user.username}' removed from the project succesfully", style='success')
-    
-    def add_member_to_task(self, user, task):
-        
+        console.print(
+            f"User '{user.username}' removed from the project succesfully", style='success')
+
+    def add_member_to_task(self, user: (User | str), task: (Task | str)) -> None:
+        user = User.cast(user)
+        if user == None:
+            console.print(f"User does not exist", style='error')
+            return
         # Check if the user is a part of the project:
-        if not(self.is_member(user) or self.is_leader(user)):
+        if not (self.is_member(user) or self.is_leader(user)):
             console.print('User isnt a part of the project', style='error')
             return
-        
+
         # Check if the task is valid:
         if not self.task_belongs(task):
             console.print('The given task does not exist', style='error')
             return
-        
+
         task = Task.cast(task)
         task.add_member(user)

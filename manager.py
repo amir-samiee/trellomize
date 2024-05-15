@@ -3,6 +3,7 @@ import tools
 
 console = tools.console
 
+
 class SystemManager:
     def __init__(self, admin_file=tools.ADMIN_FILE_PATH,
                  users_file=tools.USERS_FILE_PATH, emails_file=tools.EMAILS_FILE_PATH,
@@ -20,7 +21,8 @@ class SystemManager:
         else:
             data[username] = password
             tools.save_data(data, self.admin_file)
-            console.print(f"Admin '{username}' saved successfully.", style='success')
+            console.print(
+                f"Admin '{username}' saved successfully.", style='success')
 
     # Removes the existing admin:
     def remove_admin(self, username: str, password: str) -> None:
@@ -31,7 +33,8 @@ class SystemManager:
                     f"Admin '{username}' would no longer exist\nProceed?(Y/N): ", "Yy", "Nn", False)
                 if choice:
                     tools.save_data({}, self.admin_file)
-                    console.print(f"admin '{username}' deleted successfully.", style='success')
+                    console.print(
+                        f"admin '{username}' deleted successfully.", style='success')
                 else:
                     console.print("Operation canceled", style='warning')
             else:
@@ -77,14 +80,15 @@ class SystemManager:
 
     def ban(self, username: str):
         if self.is_admin():
-            
+
             data = tools.handeled_load_data(self.users_file)
             if username not in data.keys():
-                console.print(f"User '{username}' does not exist!", style='error')
+                console.print(
+                    f"User '{username}' does not exist!", style='error')
                 return
-            
+
             data[username]['is_active'] = False
-            tools.save_data(data , self.users_file)
+            tools.save_data(data, self.users_file)
             console.print(f"User '{username}' banned", style='success')
 
     def view(self, substring=''):
