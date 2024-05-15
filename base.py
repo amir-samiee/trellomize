@@ -72,6 +72,8 @@ class User:
 
     def load(self, raw_dict: dict):
         data = raw_dict.copy()
+        data["leading"] = set()
+        data["involved"] = set()
         # data["leading"] = [Project(id=x) for x in data["leading"]]
         # data["involved"] = [Project(id=x) for x in data["involved"]]
         User.instances[self.username] = data
@@ -88,7 +90,7 @@ class User:
     @classmethod
     def dump_to_file(cls):
         data = User.instances.copy()
-        data = {x: x.dump for x in data.keys()}
+        data = {x: User(x).dump() for x in data.keys()}
         with open(USERS_FILE_PATH, "w") as file:
             file.write(data)
 
@@ -183,13 +185,28 @@ class Task:
     def load(self, raw_dict: dict):
         data = raw_dict.copy()
         data["start_time"] = datetime.strptime(
-            data["start_time"], "%Y-%m-%d %H:%M:%S")
+            data["start_time"], "%Y-%m-%d %H:%M:%S.%f")
         data["end_time"] = datetime.strptime(
-            data["end_time"], "%Y-%m-%d %H:%M:%S")
-        data["members"] = [User(username=x) for x in self.members]
+            data["end_time"], "%Y-%m-%d %H:%M:%S.%f")
+        data["members"] = {User(username=x) for x in data["members"]}
         data["priority"] = priority_dict[data["priority"]]
-        data["status"] = priority_dict[data["status"]]
+        data["status"] = status_dict[data["status"]]
         Task.instances[self.id] = data
+
+    @classmethod
+    def load_from_file(cls):
+        data = load_data(TASKS_FILE_PATH)
+        for task_id in data.keys():
+            task_data = data[task_id]
+            task = Task(id=task_id)
+            task.load(task_data)
+
+    @classmethod
+    def dump_to_file(cls):
+        data = Task.instances.copy()
+        data = {x: Task(id=x).dump() for x in data.keys()}
+        with open(TASKS_FILE_PATH, "w") as file:
+            file.write(data)
 
     @property
     def name(self):
@@ -270,7 +287,8 @@ class Project:
     def __init__(self, id: str, title="", leader=None, members=set(), tasks=set()) -> None:
         self.id = id
         if id not in Project.instances.keys():
-            leader.leading.add(self)
+            if leader:
+                leader.leading.add(self)
             for member in members:
                 member.involved.add(self)
 
@@ -281,6 +299,38 @@ class Project:
             data['members'] = members  # list of User instances
             data['tasks'] = tasks      # list of task identifiers or objects
             Project.instances[id] = data
+
+    def dump(self):
+        data = Project.instances[self.id].copy()
+        data["leader"] = self.leader.username
+        data["members"] = [x.username for x in self.members]
+        data["tasks"] = [x.id for x in self.tasks]
+        return data
+
+    def load(self, raw_dict: dict):
+        data = raw_dict.copy()
+        data["leader"] = User(data["leader"])
+        data["members"] = {User(x) for x in data["members"]}
+        data["tasks"] = {Task(id=x) for x in data["tasks"]}
+        Project.instances[self.id] = data
+        self.leader.leading.add(self)
+        for member in self.members:
+            member.involved.add(self)
+
+    @classmethod
+    def load_from_file(cls):
+        data = load_data(PROJECTS_FILE_PATH)
+        for project_id in data.keys():
+            project_data = data[project_id]
+            project = Project(id=project_id)
+            project.load(project_data)
+
+    @classmethod
+    def dump_to_file(cls):
+        data = Project.instances.copy()
+        data = {x: Project(id=x).dump() for x in data.keys()}
+        with open(PROJECTS_FILE_PATH, "w") as file:
+            file.write(data)
 
     @property
     def title(self):

@@ -1,0 +1,10 @@
+{
+  "janesmth": {
+    "name": "Jane Smith",
+    "email": "janesmith33@gmail.com",
+    "password": "securepass456",
+    "is_active": true,
+    "leading": ["newProject"],
+    "involved": ["newProject"]
+  }
+}
