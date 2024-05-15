@@ -80,7 +80,7 @@ class SystemManager:
             
             data = tools.handeled_load_data(self.users_file)
             if username not in data.keys():
-                console.print(f"User '{username}' does not exist!")
+                console.print(f"User '{username}' does not exist!", style='error')
                 return
             
             data[username]['is_active'] = False
