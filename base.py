@@ -337,13 +337,13 @@ class Project:
             return user == self.leader.username
         raise ValueError(f'wrong type argument({type(user)})')
     
-    def add_member(self, user):
 
+    def add_member(self, user):
         # Check if the user exists:
         if not User.is_user(user):
             console.print(f"User does not exist", style='error')
             return
-        
+
         # Check if the user is not already in the project:
         if self.is_member(user) or self.is_leader(user):
             console.print('User is already a part of the project', style='error')
@@ -358,3 +358,29 @@ class Project:
         self.members = members
 
         console.print(f"User '{user.username}' added succesfully", style='success')
+
+    
+    def remove_member(self, user):
+        # Check if the user exists:
+        if not User.is_user(user):
+            console.print(f"User does not exist", style='error')
+            return
+
+        # Check if the user is the projects leader:
+        if self.is_leader(user):
+            console.print('Cant remove the leader', style='error')
+            return
+        
+        # Check if the user is a member of project:
+        if not self.is_member(user):
+            console.print(f"User is not a part of the project", style='error')
+            return
+        
+        # Removing the user:
+        if type(user) == str:
+            user = User(user)
+        
+        members = self.members
+        members.remove(user)
+        self.members = members
+        console.print(f"User '{user.username}' removed from the project succesfully", style='success')
