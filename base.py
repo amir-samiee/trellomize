@@ -140,6 +140,12 @@ class User:
     def involved(self, new_involved: list):
         User.instances[self.username]['involved'] = new_involved
 
+    def is_user(user):
+        if type(user) == str:
+            return user in User.instances.keys()        
+        elif type(user) == User:
+            return user.username in User.instances.keys()
+        raise ValueError(f'wrong type of argument({type(user)})')
 
 # class Comment:
 #     def __init__(self,user: User,) -> None:
@@ -313,3 +319,42 @@ class Project:
     @tasks.setter
     def tasks(self, new_tasks):
         Project.instances[self.id]['tasks'] = new_tasks
+    
+    def is_member(self, user):
+        if type(user) == User:
+            return user in self.members
+        elif type(user) == str:
+            for acc in self.members:
+                if user == acc.username:
+                    return True
+            return False
+        raise ValueError(f'wrong type argument({type(user)})')
+
+    def is_leader(self, user):
+        if type(user) == User:
+            return user == self.leader
+        elif type(user) == str:
+            return user == self.leader.username
+        raise ValueError(f'wrong type argument({type(user)})')
+    
+    def add_member(self, user):
+
+        # Check if the user exists:
+        if not User.is_user(user):
+            console.print(f"User does not exist", style='error')
+            return
+        
+        # Check if the user is not already in the project:
+        if self.is_member(user) or self.is_leader(user):
+            console.print('User is already a part of the project', style='error')
+            return
+        
+        # Add user to the project:
+        if type(user) == str:
+            user = User(user)
+        
+        members = self.members
+        members.add(user)
+        self.members = members
+
+        console.print(f"User '{user.username}' added succesfully", style='success')
