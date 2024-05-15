@@ -1,7 +1,8 @@
 import uuid
 from datetime import datetime, timedelta
-from multipledispatch import dispatch
+# from multipledispatch import dispatch
 from enum import Enum
+from tools import *
 
 
 class Priority(Enum):
@@ -11,12 +12,18 @@ class Priority(Enum):
     LOW = 4
 
 
+priority_dict = {x.name: x for x in Priority}
+
+
 class Status(Enum):
     BACKLOG = 1
     TODO = 2
     DOING = 3
     DONE = 4
     ARCHIVED = 5
+
+
+status_dict = {x.name: x for x in Status}
 
 
 class Task:
@@ -28,6 +35,19 @@ class Project:
 
 
 class User:
+    __current = None
+
+    @classproperty
+    def current(cls):
+        current_user = User.__current
+        if not current_user:
+            raise ValueError("User has not been defined yet")
+        return current_user
+
+    @current.setter
+    def current(cls, new_current_user):
+        User.__current = new_current_user
+
     instances = dict()
 
     def __init__(self, username: str, name="", email="", password="",
@@ -43,6 +63,34 @@ class User:
             data['leading'] = set()  # projects
             data['involved'] = set()  # projects
             User.instances[username] = data
+
+    def dump(self) -> dict:
+        data = User.instances[self.username].copy()
+        # data["leading"] = [x.id for x in data["leading"]]
+        # data["involved"] = [x.id for x in data["involved"]]
+        return data
+
+    def load(self, raw_dict: dict):
+        data = raw_dict.copy()
+        # data["leading"] = [Project(id=x) for x in data["leading"]]
+        # data["involved"] = [Project(id=x) for x in data["involved"]]
+        User.instances[self.username] = data
+
+    @classmethod
+    def load_from_file(cls):
+        data = load_data(USERS_FILE_PATH)
+        for username in data.keys():
+            user_data = data[username]
+            # user_data["leading"] = set()
+            user = User(username)
+            user.load(user_data)
+
+    @classmethod
+    def dump_to_file(cls):
+        data = User.instances.copy()
+        data = {x: x.dump for x in data.keys()}
+        with open(USERS_FILE_PATH, "w") as file:
+            file.write(data)
 
     @property
     def name(self):
@@ -122,6 +170,26 @@ class Task:
             data["history"] = history
             data["comments"] = comments
             Task.instances[self.id] = data
+
+    def dump(self):
+        data = Task.instances[self.id].copy()
+        data["start_time"] = str(data["start_time"])
+        data["end_time"] = str(self.end_time)
+        data["members"] = [x.dump() for x in self.members]
+        data["priority"] = self.priority.name
+        data["status"] = self.status.name
+        return data
+
+    def load(self, raw_dict: dict):
+        data = raw_dict.copy()
+        data["start_time"] = datetime.strptime(
+            data["start_time"], "%Y-%m-%d %H:%M:%S")
+        data["end_time"] = datetime.strptime(
+            data["end_time"], "%Y-%m-%d %H:%M:%S")
+        data["members"] = [User(username=x) for x in self.members]
+        data["priority"] = priority_dict[data["priority"]]
+        data["status"] = priority_dict[data["status"]]
+        Task.instances[self.id] = data
 
     @property
     def name(self):

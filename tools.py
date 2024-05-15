@@ -93,3 +93,52 @@ TITLES_FILE_PATH = "Data/titles.txt"
 TITLES = load_data(TITLES_FILE_PATH).split("\n\n")
 TITLE = TITLES[5]
 COLORED_TITLE = f"[cyan]{TITLE}[/]"
+
+
+# helper class for defining classproperty
+class ClassProperty:
+    def __init__(self, fget, fset=None):
+        self.fget = fget
+        self.fset = fset
+
+    def __get__(self, obj, owner):
+        return self.fget.__get__(None, owner)()
+
+    def __set__(self, obj, value):
+        if not self.fset:
+            raise AttributeError("can't set attribute")
+        self.fset.__get__(None, type(obj))(value)
+
+    def setter(self, func):
+        if not isinstance(func, (classmethod, staticmethod)):
+            func = classmethod(func)
+        self.fset = func
+        return self
+
+
+def classproperty(func):
+    """
+    decorator for defining class properties since class properties is deprecated in python 3.11
+    and it's not possible to use both @property and @classmethod for a class method
+    """
+    if not isinstance(func, (classmethod, staticmethod)):
+        func = classmethod(func)
+    return ClassProperty(func)
+
+
+def is_iterable(obj):
+    try:
+        iter(obj)
+        return True
+    except TypeError:
+        return False
+
+
+def jsonized(obj):
+    if type(obj) in [int, str]:
+        return obj
+    if type(obj) in [list, set]:
+        return [jsonized(x) for x in obj]
+    if hasattr(obj, "dump"):
+        return obj.dump()
+    return obj
