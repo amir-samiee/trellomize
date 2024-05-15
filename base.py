@@ -300,6 +300,13 @@ class Task:
             return task.id in Task.instances.keys()
         raise ValueError(f'wrong type of argument({type(task)})')
 
+    def is_member(self, user: (User | str)) -> bool:
+        user = User.cast(user)
+        if user == None:
+            print('User does not exist', style='error')
+            return
+        return user in self.members
+
     def add_member(self, user: (User | str)) -> None:
         user = User.cast(user)
         # Check if the user exists:
@@ -319,6 +326,25 @@ class Task:
 
         console.print(
             f"User '{user.username}' added succesfully", style='success')
+
+    def remove_member(self, user: (User | str)) -> None:
+        user = User.cast(user)
+        # Check if the user exists:
+        if user == None:
+            console.print(f"User does not exist", style='error')
+            return
+        # Check if the user is a member of the task:
+        if not self.is_member(user):
+            console.print(
+                f"User '{user.username}' is not a part of the task", style='error')
+            return
+
+        # Removing the user:
+        members = self.members
+        members.remove(user)
+        self.members = members
+        console.print(
+            f"User '{user.username}' removed from the task succesfully", style='success')
 
 
 class Project:
@@ -469,3 +495,16 @@ class Project:
 
         task = Task.cast(task)
         task.add_member(user)
+
+    def remove_member_from_task(self, user: (User | str), task: (Task | str)) -> None:
+        user = User.cast(user)
+        if user == None:
+            console.print(f"User does not exist", style='error')
+            return
+        # Check if the task is valid:
+        if not self.task_belongs(task):
+            console.print('The given task does not exist', style='error')
+            return
+
+        task = Task.cast(task)
+        task.remove_member(user)
