@@ -12,7 +12,7 @@ class Priority(Enum):
     LOW = 4
 
 
-priority_dict = {x.name: x for x in Priority}
+PRIORITY_DICT = {x.name: x for x in Priority}
 
 
 class Status(Enum):
@@ -23,7 +23,7 @@ class Status(Enum):
     ARCHIVED = 5
 
 
-status_dict = {x.name: x for x in Status}
+STATUS_DICT = {x.name: x for x in Status}
 
 
 class User:
@@ -80,8 +80,8 @@ class User:
 
     def dump(self) -> dict:
         data = User.instances[self.username].copy()
-        # data["leading"] = [x.id for x in data["leading"]]
-        # data["involved"] = [x.id for x in data["involved"]]
+        data["leading"] = [x.id for x in data["leading"]]
+        data["involved"] = [x.id for x in data["involved"]]
         return data
 
     def load(self, raw_dict: dict):
@@ -105,8 +105,7 @@ class User:
     def dump_to_file(cls):
         data = User.instances.copy()
         data = {x: User(x).dump() for x in data.keys()}
-        with open(USERS_FILE_PATH, "w") as file:
-            file.write(data)
+        save_data(data, USERS_FILE_PATH)
 
     @property
     def name(self):
@@ -207,7 +206,7 @@ class Task:
         data = Task.instances[self.id].copy()
         data["start_time"] = str(data["start_time"])
         data["end_time"] = str(self.end_time)
-        data["members"] = [x.dump() for x in self.members]
+        data["members"] = [x.username for x in self.members]
         data["priority"] = self.priority.name
         data["status"] = self.status.name
         return data
@@ -219,8 +218,8 @@ class Task:
         data["end_time"] = datetime.strptime(
             data["end_time"], "%Y-%m-%d %H:%M:%S.%f")
         data["members"] = {User(username=x) for x in data["members"]}
-        data["priority"] = priority_dict[data["priority"]]
-        data["status"] = status_dict[data["status"]]
+        data["priority"] = PRIORITY_DICT[data["priority"]]
+        data["status"] = STATUS_DICT[data["status"]]
         Task.instances[self.id] = data
 
     @classmethod
@@ -235,8 +234,7 @@ class Task:
     def dump_to_file(cls):
         data = Task.instances.copy()
         data = {x: Task(id=x).dump() for x in data.keys()}
-        with open(TASKS_FILE_PATH, "w") as file:
-            file.write(data)
+        save_data(data, TASKS_FILE_PATH)
 
     @property
     def name(self):
@@ -412,8 +410,7 @@ class Project:
     def dump_to_file(cls):
         data = Project.instances.copy()
         data = {x: Project(id=x).dump() for x in data.keys()}
-        with open(PROJECTS_FILE_PATH, "w") as file:
-            file.write(data)
+        save_data(data, PROJECTS_FILE_PATH)
 
     def cast(project: (Project | str)) -> (Project | None):
         if not Project.exists(project):
@@ -558,3 +555,25 @@ class Project:
 
         task = Task.cast(task)
         task.remove_member(user)
+
+
+def init_program():
+    User.load_from_file()
+    Task.load_from_file()
+    Project.load_from_file()
+
+
+def save():
+    User.dump_to_file()
+    Task.dump_to_file()
+    Project.dump_to_file()
+
+
+def save_quit():
+    save()
+    quit()
+
+
+def quit_check(choice: str, quit_sign="q"):
+    if choice == quit_sign:
+        save_quit()

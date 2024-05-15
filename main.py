@@ -27,12 +27,24 @@ login
         exit
 """
 from tools import *
+from base import *
 
 
 def login():
     clear_screen()
-    options = f"{COLORED_TITLE}\n\nenter your username: "
-    
+    message = f"{
+        COLORED_TITLE}\n\n$$error$$\nenter your username (0 to go back): "
+    username = get_input(message, [*User.instances.keys(
+    ), "0"], error_message="Username not found! You have to signup first")
+    if username == "0":
+        return
+    user = User(username)
+    message += username + "\nenter your password (0 to go back): "
+    password = get_input(
+        message, included=[decrypted(user.password), "0"], error_message="wrong password")
+    if password == "0":
+        return
+    User.current = User(username)
 
 
 def signup():
@@ -55,12 +67,15 @@ def starting_menu():
             case 2:
                 signup()
             case 0:
+                save()
                 quit()
         main_menu()
 
 
 if __name__ == "__main__":
     try:
+        init_program()
         starting_menu()
     except KeyboardInterrupt:
         print("Exiting the program...", style="warning")
+        save()

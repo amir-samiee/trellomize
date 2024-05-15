@@ -2,9 +2,13 @@
   "janesmth": {
     "name": "Jane Smith",
     "email": "janesmith33@gmail.com",
-    "password": "securepass456",
+    "password": "gAAAAABmRQt-mpYi3gUPY4EhHNj22K2WXhsdzVYnyaDTc2qf_LXuaijIGs7rJb1y0a-Cvxevv3GZMJH3CeqdIudlb3YkgBRcmQ==",
     "is_active": true,
-    "leading": ["newProject"],
-    "involved": ["newProject"]
+    "leading": [
+      "newProject"
+    ],
+    "involved": [
+      "newProject"
+    ]
   }
 }
