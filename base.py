@@ -71,22 +71,25 @@ class User:
             self.username = username
 
     def __eq__(self, other: User):
-        return self.username == other.username
+        return isinstance(other, User) and self.username == other.username
 
-    @classmethod
-    def struct(cls, username: str, raw_dict: dict):
-        data = {
-            "name": "",
-            "email": "",
-            "password": None,
-            "is_active": True,
-            "involved": [],
-            "leading": []
-        }
-        for key in data.keys():
-            if key in raw_dict.keys():
-                data[key] = raw_dict[key]
-        User.instances[username] = data
+    def __hash__(self):
+        return hash(self.username)
+
+    # @classmethod
+    # def struct(cls, username: str, raw_dict: dict):
+    #     data = {
+    #         "name": "",
+    #         "email": "",
+    #         "password": None,
+    #         "is_active": True,
+    #         "involved": [],
+    #         "leading": []
+    #     }
+    #     for key in data.keys():
+    #         if key in raw_dict.keys():
+    #             data[key] = raw_dict[key]
+    #     User.instances[username] = data
 
     @classmethod
     def load_from_file(cls):
@@ -171,6 +174,7 @@ class Task:
             self.id = id
             if id in Task.instances.keys():
                 return
+            raise ValueError("no task exists with this id")
         else:
             id = str(uuid.uuid4())
         self.id = id
@@ -186,25 +190,28 @@ class Task:
         self.comments = comments
 
     def __eq__(self, other: Task):
-        return self.id == other.id
+        return isinstance(other, Task) and self.id == other.id
 
-    @classmethod
-    def struct(cls, id, raw_dict):
-        data = {
-            "name": "",
-            "description": "",
-            "start_time": str(datetime.now()),
-            "end_time":  str(datetime.now() + timedelta(days=1)),
-            "members": [],
-            "priority":  Priority.LOW.name,
-            "status": Status.BACKLOG.name,
-            "history": [],
-            "comments": []
-        }
-        for key in data.keys():
-            if key in raw_dict.keys():
-                data[key] = raw_dict[key]
-        Task.instances[id] = data
+    def __hash__(self):
+        return hash(self.id)
+
+    # @classmethod
+    # def struct(cls, id, raw_dict):
+    #     data = {
+    #         "name": "",
+    #         "description": "",
+    #         "start_time": str(datetime.now()),
+    #         "end_time":  str(datetime.now() + timedelta(days=1)),
+    #         "members": [],
+    #         "priority":  Priority.LOW.name,
+    #         "status": Status.BACKLOG.name,
+    #         "history": [],
+    #         "comments": []
+    #     }
+    #     for key in data.keys():
+    #         if key in raw_dict.keys():
+    #             data[key] = raw_dict[key]
+    #     Task.instances[id] = data
 
     @classmethod
     def load_from_file(cls):
@@ -350,20 +357,23 @@ class Project:
                 User.instances[member.username]["involved"].append(id)
 
     def __eq__(self, other: Project):
-        return self.id == other.id
+        return isinstance(other, Project) and self.id == other.id
 
-    @classmethod
-    def struct(cls, id, raw_dict):
-        data = {
-            "title": "",
-            "leader": "",
-            "members": [],
-            "tasks": []
-        }
-        for key in data.keys():
-            if key in raw_dict.keys():
-                data[key] = raw_dict[key]
-        Project.instances[id] = data
+    def __hash__(self):
+        return hash(self.id)
+
+    # @classmethod
+    # def struct(cls, id, raw_dict):
+    #     data = {
+    #         "title": "",
+    #         "leader": "",
+    #         "members": [],
+    #         "tasks": []
+    #     }
+    #     for key in data.keys():
+    #         if key in raw_dict.keys():
+    #             data[key] = raw_dict[key]
+    #     Project.instances[id] = data
 
     @classmethod
     def load_from_file(cls):
@@ -414,8 +424,6 @@ class Project:
         raise ValueError(f'wrong type of argument({type(project)})')
 
     def has_member(self, user: User) -> bool:
-        print(self.members)
-        print(user)
         return user in self.members
 
     def is_leader(self, user: User) -> bool:
@@ -446,8 +454,8 @@ class Project:
         involved.add(self)
         user.involved = involved
 
-        print(f"User '{user.username}' added to project",
-              f"'{self.title}'", style='success', sep=' ')
+        # print(f"User '{user.username}' added to project",
+        #       f"'{self.title}'", style='success', sep=' ')
 
     def remove_member(self, user: User) -> None:
         # Check if the user exists:

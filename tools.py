@@ -11,6 +11,7 @@ theme = Theme({
     "error": "bold red",
     "warning": "bold yellow",
     "success": "bold green",
+    "title": "black on cyan"
 })
 console = Console(theme=theme)
 print = console.print
@@ -207,3 +208,7 @@ def email_is_valid(email: str) -> bool:
     if re.match(pattern, email):
         return True
     return False
+
+
+def id_is_valid(id: str) -> bool:
+    return id and " " not in id and "\t" not in id
