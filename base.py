@@ -490,8 +490,8 @@ class Project:
         members.add(user)
         self.members = members
         user.join_project(self)
-        console.print(f"User '{user.username}' added to project '{
-                      self.title}' succesfully", style='success')
+        console.print(f"User '{user.username}' added to project",
+                      f"'{self.title}' succesfully", style='success', sep=' ')
 
     def remove_member(self, user: User) -> None:
         # Check if the user exists:
@@ -515,8 +515,8 @@ class Project:
         members.remove(user)
         self.members = members
         user.leave_project(self)
-        console.print(f"User '{user.username}' removed from project 
-                      '{self.title}' succesfully", style='success')
+        console.print(f"User '{user.username}' removed from project",
+                      f"'{self.title}' succesfully", style='success', sep=' ')
 
     def add_member_to_task(self, user: User, task: Task) -> None:
         if not User.exists(user):
