@@ -56,12 +56,12 @@ class User:
 
     def __init__(self, username: str, name=None, email=None, password=None,
                  is_active=True) -> None:
-        self.username = username
         if username not in User.instances.keys():
             # Check if the attributes are valid:
             if None in [name, email, password]:
                 raise ValueError(
                     'Invalid username or missing other attributes')
+            self.username = username
             # Creating and setting the data for instances
             data = dict()
             data['name'] = name
@@ -71,6 +71,8 @@ class User:
             data['leading'] = set()  # projects
             data['involved'] = set()  # projects
             User.instances[username] = data
+        else:
+            self.username = username
 
     def dump(self) -> dict:
         data = User.instances[self.username].copy()
@@ -92,7 +94,7 @@ class User:
         for username in data.keys():
             user_data = data[username]
             # user_data["leading"] = set()
-            user = User(username)
+            user = User(username, password=data[username]["password"])
             user.load(user_data)
 
     @classmethod

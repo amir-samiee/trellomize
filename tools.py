@@ -4,6 +4,8 @@ from typing import Any, Iterable
 from rich.console import Console
 from rich.theme import Theme
 from cryptography.fernet import Fernet
+from getpass import getpass
+import re
 
 theme = Theme({
     "error": "bold red",
@@ -43,7 +45,8 @@ def get_bool_input(message: str, true: str, false: str, cls=True) -> bool:
         rep += 1
 
 
-def get_input(message: str, included: Iterable = [], excluded: Iterable = [], cls=True, limiting_function=lambda x: True, error_message="invalid input", return_type=str):
+def get_input(message: str, included: Iterable = [], excluded: Iterable = [], cls=True, limiting_function=lambda x: True,
+              error_message="invalid input", return_type=str, is_pass=False):
     included = [str(x) for x in included]
     excluded = [str(x) for x in excluded]
 
@@ -63,7 +66,11 @@ def get_input(message: str, included: Iterable = [], excluded: Iterable = [], cl
         is_valid = True
         modified_message = message.replace(error_sign, replacement)
         print(modified_message, end="")
-        choice = input()
+        choice = None
+        if is_pass:
+            choice = getpass("")
+        else:
+            choice = input()
         if included:
             if choice not in included:
                 is_valid = False
@@ -138,7 +145,7 @@ def classproperty(func):
     return ClassProperty(func)
 
 
-def is_iterable(obj):
+def is_iterable(obj) -> bool:
     try:
         iter(obj)
         return True
@@ -171,11 +178,32 @@ def load_key():
 encryption_key = load_key()
 
 
-def encrypted(plain_text: str):
+def encrypted(plain_text: str) -> str:
     cipher_suite = Fernet(encryption_key)
     return cipher_suite.encrypt(plain_text.encode()).decode()
 
 
-def decrypted(encrypted_text: str):
+def decrypted(encrypted_text: str) -> str:
     cipher_suite = Fernet(encryption_key)
     return cipher_suite.decrypt(encrypted_text.encode()).decode()
+
+
+def pass_is_valid(password: str) -> bool:
+    if len(password) < 6:
+        return False
+    if not re.search(r'[A-Za-z]', password):
+        return False
+    if not re.search(r'\d', password):
+        return False
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+        return False
+    if " " in password:
+        return False
+    return True
+
+
+def email_is_valid(email: str) -> bool:
+    pattern = r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if re.match(pattern, email):
+        return True
+    return False
