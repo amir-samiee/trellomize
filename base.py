@@ -296,7 +296,7 @@ class Task:
     def comments(self, new_comments):
         Task.instances[self.id]['comments'] = new_comments
 
-    def exists(self, task: (Task | str)) -> bool:
+    def exists(task: (Task | str)) -> bool:
         if type(task) == str:
             return task in Task.instances.keys()
         elif type(task) == Task:
