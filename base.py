@@ -318,7 +318,7 @@ class Task:
         task_members.add(user)
         self.members = task_members
         console.print(
-            f"User '{user.username}' added succesfully", style='success')
+            f"User '{user.username}' added to task '{self.name}'", style='success')
 
     def remove_member(self, user: User) -> None:
         # Check if the user exists:
@@ -333,7 +333,7 @@ class Task:
         members.remove(user)
         self.members = members
         console.print(
-            f"User '{user.username}' removed from the task succesfully", style='success')
+            f"User '{user.username}' removed from task '{self.name}'", style='success')
 
 
 class Project:
@@ -460,8 +460,7 @@ class Project:
         user.involved = involved
 
         console.print(f"User '{user.username}' added to project",
-                      f"'{self.title}' succesfully", style='success', sep=' ')
-
+                      f"'{self.title}'", style='success', sep=' ')
 
     def remove_member(self, user: User) -> None:
         # Check if the user exists:
@@ -489,9 +488,35 @@ class Project:
         involved = user.involved
         involved.remove(self)
         user.involved = involved
-        
+
         console.print(f"User '{user.username}' removed from project",
-                      f"'{self.title}' succesfully", style='success', sep=' ')
+                      f"'{self.title}'", style='success', sep=' ')
+
+    def add_task(self, task: Task):
+        # Check if the task exists:
+        if not Task.exists(task):
+            # console.print(f"User does not exist", style='error')
+            raise ValueError("task does not exist")
+        
+        # Add task to the project:
+        tasks = self.tasks
+        tasks.add(task)
+        self.tasks = tasks
+
+        console.print(f"Task '{task.name}' added to project '{self.title}'", style='success')
+
+    def remove_task(self, task: Task):
+        # Check if the task exists:
+        if not Task.exists(task):
+            # console.print(f"User does not exist", style='error')
+            raise ValueError("task does not exist")
+        
+        # Remove task from the project:
+        tasks = self.tasks
+        tasks.remove(task)
+        self.tasks = tasks
+        
+        console.print(f"Task '{task.name}' removed from project '{self.title}'", style='success')
 
     def add_member_to_task(self, user: User, task: Task) -> None:
         if not User.exists(user):
