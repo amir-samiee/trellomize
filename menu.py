@@ -64,7 +64,7 @@ class Menu:
 
         password = encrypted(password)
         data = {"password": password, "name": name, "email": email}
-        user = User(username, data)
+        user = User.struct(username, data)
         save()
         User.current = user
         print("you successfully signed up! press enter to continue: ",

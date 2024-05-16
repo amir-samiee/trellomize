@@ -54,13 +54,39 @@ class User:
 
     instances = dict()
 
-    def __init__(self, username: str, raw_dict=dict()) -> None:
-        self.username = username
-        if not username in User.instances.keys():
-            User.instances[username] = raw_dict
+    def __init__(self, username: str, name: str = '', email: str = '', password: str = None,
+                 is_active: bool = True, involved=set(), leading=set()) -> None:
+        if username not in User.instances:
+            if password == None:
+                raise ValueError("password can't be None")
+            User.instances[username] = dict()
+            self.username = username
+            self.name = name
+            self.email = email
+            self.password = password
+            self.is_active = is_active
+            self.involved = involved
+            self.leading = leading
+        else:
+            self.username = username
 
     def __eq__(self, other: User):
         return self.username == other.username
+
+    @classmethod
+    def struct(cls, username: str, raw_dict: dict):
+        data = {
+            "name": "",
+            "email": "",
+            "password": None,
+            "is_active": True,
+            "involved": [],
+            "leading": []
+        }
+        for key in data.keys():
+            if key in raw_dict.keys():
+                data[key] = raw_dict[key]
+        User.instances[username] = data
 
     @classmethod
     def load_from_file(cls):
@@ -107,7 +133,7 @@ class User:
         return set(Project(x) for x in User.instances[self.username]['leading'])
 
     @leading.setter
-    def leading(self, new_leading: list):
+    def leading(self, new_leading: set):
         User.instances[self.username]['leading'] = [x.id for x in new_leading]
 
     @property
@@ -115,7 +141,7 @@ class User:
         return {Project(x) for x in User.instances[self.username]['involved']}
 
     @involved.setter
-    def involved(self, new_involved: list):
+    def involved(self, new_involved: set):
         User.instances[self.username]['involved'] = [
             x.id for x in new_involved]
 
@@ -136,14 +162,49 @@ class User:
 class Task:
     instances = dict()
 
-    def __init__(self, raw_dict=dict(), id=None) -> None:
-        if id == None:
-            id = uuid.uuid4()
-            Task.instances[id] = raw_dict
+    def __init__(self, name: str = "", description: str = "", start_time: datetime = datetime.now(),
+                 end_time: datetime = datetime.now() + timedelta(days=1), members: set = set(), priority: Priority = Priority.LOW,
+                 status: Status = Status.BACKLOG, history: list = [], comments: list = [], **kwargs) -> None:
+        id = None
+        if "id" in kwargs:
+            id = kwargs["id"]
+            self.id = id
+            if id in Task.instances.keys():
+                return
+        else:
+            id = str(uuid.uuid4())
         self.id = id
+        Task.instances[id] = dict()
+        self.name = name
+        self.description = description
+        self.start_time = start_time
+        self.end_time = end_time
+        self.members = members
+        self.priority = priority
+        self.status = status
+        self.history = history
+        self.comments = comments
 
     def __eq__(self, other: Task):
         return self.id == other.id
+
+    @classmethod
+    def struct(cls, id, raw_dict):
+        data = {
+            "name": "",
+            "description": "",
+            "start_time": str(datetime.now()),
+            "end_time":  str(datetime.now() + timedelta(days=1)),
+            "members": [],
+            "priority":  Priority.LOW.name,
+            "status": Status.BACKLOG.name,
+            "history": [],
+            "comments": []
+        }
+        for key in data.keys():
+            if key in raw_dict.keys():
+                data[key] = raw_dict[key]
+        Task.instances[id] = data
 
     @classmethod
     def load_from_file(cls):
@@ -271,13 +332,38 @@ class Task:
 class Project:
     instances = dict()
 
-    def __init__(self, id: str, raw_dict=dict()) -> None:
+    def __init__(self, id: str, title: str = None, leader: User = None, members=set(), tasks=set()) -> None:
         self.id = id
         if id not in Project.instances.keys():
-            Project.instances[id] = raw_dict
+            if leader == None:
+                raise ValueError(
+                    "Invalid project ID or missing project title/leadder.")
+            # Creating and setting the data for instances
+            Project.instances[id] = dict()
+            self.title = title
+            self.leader = leader
+            self.members = members  # list of User instances
+            self.tasks = tasks      # list of task identifiers or objects
+
+            User.instances[leader.username]["leading"].append(id)
+            for member in members:
+                User.instances[member.username]["involved"].append(id)
 
     def __eq__(self, other: Project):
         return self.id == other.id
+
+    @classmethod
+    def struct(cls, id, raw_dict):
+        data = {
+            "title": "",
+            "leader": "",
+            "members": [],
+            "tasks": []
+        }
+        for key in data.keys():
+            if key in raw_dict.keys():
+                data[key] = raw_dict[key]
+        Project.instances[id] = data
 
     @classmethod
     def load_from_file(cls):
