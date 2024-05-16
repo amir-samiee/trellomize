@@ -54,11 +54,11 @@ class User:
 
     instances = dict()
 
-    def __init__(self, username: str, name: str = None, email: str = None, password: str = None,
+    def __init__(self, username: str, name: str = '', email: str = '', password: str = None,
                  is_active: bool = True) -> None:
         if username not in User.instances.keys():
             # Check if the attributes are valid:
-            if None in [name, email, password]:
+            if None == password:
                 raise ValueError(
                     'Invalid username or missing other attributes')
             self.username = username
@@ -498,6 +498,10 @@ class Project:
             # console.print(f"User does not exist", style='error')
             raise ValueError("task does not exist")
         
+        # Check if the task is already in the project:
+        if task.id in [t.id for t in self.tasks]:
+            raise ValueError('Task already exists in the project')
+
         # Add task to the project:
         tasks = self.tasks
         tasks.add(task)
@@ -509,7 +513,11 @@ class Project:
         # Check if the task exists:
         if not Task.exists(task):
             # console.print(f"User does not exist", style='error')
-            raise ValueError("task does not exist")
+            raise ValueError("Task does not exist")
+        
+        # Check if the task is in  the project:
+        if task.id not in [t.id for t in self.tasks]:
+            raise ValueError('Task is not in the project')
         
         # Remove task from the project:
         tasks = self.tasks
