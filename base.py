@@ -156,6 +156,45 @@ class User:
             return user.username in User.instances.keys()
         raise ValueError(f'wrong type of argument({type(user)})')
 
+    def join_project(self, project: Project) -> None:
+        # Check if the project exists:
+        if not Project.exists(project):
+            # console.print(f"project does not exist", style='error')
+            raise ValueError("Project does not exist")
+
+        # Check if the user is not already in the project:
+        if project.has_member(self) or project.is_leader(self):
+            # console.print(f"User '{self.username}' is already a part of the project", style='error')
+            raise ValueError(
+                f"User '{self.username}' is already a part of the project")
+
+        # Add project to the user:
+        involved = self.involved
+        involved.add(project)
+        self.involved = involved
+
+    def leave_project(self, project: Project) -> None:
+        # Check if the user exists:
+        if not Project.exists(project):
+            # console.print(f"User does not exist", style='error')
+            raise ValueError(f"project does not exist")
+
+        # Check if the user is the projects leader:
+        if project.is_leader(self):
+            # console.print('Cant remove the leader', style='error')
+            raise ValueError('Cant remove the leader')
+
+        # Check if the user is a member of project:
+        if not project.has_member(self):
+            # console.print(f"User '{user.username}' is not a part of the project", style='error')
+            raise ValueError(
+                f"User '{self.username}' is not a part of the project")
+
+        # Removing the user:
+        involved = self.involved
+        involved.remove(self)
+        self.involved = involved
+
 # class Comment:
 #     def __init__(self,user: User,) -> None:
 #         pass
@@ -450,8 +489,9 @@ class Project:
         members = self.members
         members.add(user)
         self.members = members
-        console.print(
-            f"User '{user.username}' added succesfully", style='success')
+        user.join_project(self)
+        console.print(f"User '{user.username}' added to project '{
+                      self.title}' succesfully", style='success')
 
     def remove_member(self, user: User) -> None:
         # Check if the user exists:
@@ -474,8 +514,9 @@ class Project:
         members = self.members
         members.remove(user)
         self.members = members
-        console.print(
-            f"User '{user.username}' removed from the project succesfully", style='success')
+        user.leave_project(self)
+        console.print(f"User '{user.username}' removed from project 
+                      '{self.title}' succesfully", style='success')
 
     def add_member_to_task(self, user: User, task: Task) -> None:
         if not User.exists(user):
