@@ -327,7 +327,8 @@ class Task:
         task_members.add(user)
         self.members = task_members
         if is_viewed:
-            print(f"User '{user.username}' added to task '{self.name}'", style='success')
+            print(f"User '{user.username}' added to task '{
+                  self.name}'", style='success')
 
     def remove_member(self, user: User, is_viewed: bool = False) -> None:
         # Check if the user exists:
@@ -342,7 +343,8 @@ class Task:
         members.remove(user)
         self.members = members
         if is_viewed:
-            print(f"User '{user.username}' removed from task '{self.name}'", style='success')
+            print(f"User '{user.username}' removed from task '{
+                  self.name}'", style='success')
 
 
 class Project:
@@ -440,22 +442,21 @@ class Project:
 
     def task_belongs(self, task: Task) -> bool:
         return task in self.tasks
-    
+
     def remove(self):
         # Remove project from leaders leading projects:
-        self.leader.leading = set([proj for proj in list(self.leader.leading) if proj!= self])
+        self.leader.leading -= {self}
 
         # Remove project from members involved projects:
         for member in self.members:
-            member.involved = set([proj for proj in list(member.involved) if proj!=self])
+            member.involved -= {self}
 
         # Remove tasks from task instances:
         for task in self.tasks:
             del Task.instances[task.id]
 
         # Remove project from project instances:
-            del Project.instances[self.id]
-
+        del Project.instances[self.id]
 
     def add_member(self, user: User, is_viewed: bool = False) -> None:
         # Check if the user exists:
@@ -470,18 +471,14 @@ class Project:
                 f"User '{user.username}' is already a part of the project")
 
         # Add user to the project:
-        members = self.members
-        members.add(user)
-        self.members = members
+        self.members |= {user}
 
         # Add project to the user:
-        involved = user.involved
-        involved.add(self)
-        user.involved = involved
+        user.involved |= {self}
 
         if is_viewed:
             print(f"User '{user.username}' added to project",
-                   f"'{self.title}'", style='success', sep=' ')
+                  f"'{self.title}'", style='success', sep=' ')
 
     def remove_member(self, user: User, is_viewed: bool = False) -> None:
         # Check if the user exists:
@@ -501,14 +498,10 @@ class Project:
                 f"User '{user.username}' is not a part of the project")
 
         # Removing the user:
-        members = self.members
-        members.remove(user)
-        self.members = members
+        self.members -= {user}
 
         # Removing the user:
-        involved = user.involved
-        involved.remove(self)
-        user.involved = involved
+        user.involved -= {self}
 
         if is_viewed:
             console.print(f"User '{user.username}' removed from project",
@@ -525,16 +518,12 @@ class Project:
             raise ValueError('Task already exists in the project')
 
         # Add task to the project:
-        tasks = self.tasks
-        tasks.add(task)
-        self.tasks = tasks
-        print(list(self.tasks)[0].name)
+        self.tasks |= {task}
 
         if is_viewed:
             print(f"Task '{task.name}' added to project",
                   f"'{self.title}'", style='success', sep=' ')
 
-    
     def remove_task(self, task: Task, is_viewed: bool = False):
         # Check if the task exists:
         if not Task.exists(task):
@@ -546,13 +535,11 @@ class Project:
             raise ValueError('Task is not in the project')
 
         # Remove task from the project:
-        tasks = self.tasks
-        tasks.remove(task)
-        self.tasks = tasks
+        self.tasks -= {task}
 
         if is_viewed:
-            console.print(f"Task '{task.name}' removed from project", 
-                          f"'{self.title}'", style='success', sep=' ')
+            print(f"Task '{task.name}' removed from project",
+                  f"'{self.title}'", style='success', sep=' ')
 
     def add_member_to_task(self, user: User, task: Task, is_viewed: bool = False) -> None:
         if not User.exists(user):
