@@ -63,7 +63,8 @@ class Menu:
             return
 
         password = encrypted(password)
-        user = User(username, password=password, name=name, email=email)
+        data = {"password": password, "name": name, "email": email}
+        user = User(username, data)
         save()
         User.current = user
         print("you successfully signed up! press enter to continue: ",

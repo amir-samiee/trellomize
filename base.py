@@ -54,54 +54,21 @@ class User:
 
     instances = dict()
 
-    def __init__(self, username: str, name: str = '', email: str = '', password: str = None,
-                 is_active: bool = True) -> None:
-        if username not in User.instances.keys():
-            # Check if the attributes are valid:
-            if None == password:
-                raise ValueError(
-                    'Invalid username or missing other attributes')
-            self.username = username
-            # Creating and setting the data for instances
-            data = dict()
-            data['name'] = name
-            data['email'] = email
-            data['password'] = password
-            data['is_active'] = is_active
-            data['leading'] = set()  # projects
-            data['involved'] = set()  # projects
-            User.instances[username] = data
-        else:
-            self.username = username
+    def __init__(self, username: str, raw_dict=dict()) -> None:
+        self.username = username
+        if not username in User.instances.keys():
+            User.instances[username] = raw_dict
 
-    def dump(self) -> dict:
-        data = User.instances[self.username].copy()
-        data["leading"] = [x.id for x in data["leading"]]
-        data["involved"] = [x.id for x in data["involved"]]
-        return data
-
-    def load(self, raw_dict: dict):
-        data = raw_dict.copy()
-        data["leading"] = set()
-        data["involved"] = set()
-        # data["leading"] = [Project(id=x) for x in data["leading"]]
-        # data["involved"] = [Project(id=x) for x in data["involved"]]
-        User.instances[self.username] = data
+    def __eq__(self, other: User):
+        return self.username == other.username
 
     @classmethod
     def load_from_file(cls):
-        data = load_data(USERS_FILE_PATH)
-        for username in data.keys():
-            user_data = data[username]
-            # user_data["leading"] = set()
-            user = User(username, password=data[username]["password"])
-            user.load(user_data)
+        User.instances = load_data(USERS_FILE_PATH)
 
     @classmethod
     def dump_to_file(cls):
-        data = User.instances.copy()
-        data = {x: User(x).dump() for x in data.keys()}
-        save_data(data, USERS_FILE_PATH)
+        save_data(User.instances, USERS_FILE_PATH)
 
     @property
     def name(self):
@@ -137,20 +104,22 @@ class User:
 
     @property
     def leading(self):
-        return User.instances[self.username]['leading']
+        return set(Project(x) for x in User.instances[self.username]['leading'])
 
     @leading.setter
     def leading(self, new_leading: list):
-        User.instances[self.username]['leading'] = new_leading
+        User.instances[self.username]['leading'] = [x.id for x in new_leading]
 
     @property
     def involved(self):
-        return User.instances[self.username]['involved']
+        return {Project(x) for x in User.instances[self.username]['involved']}
 
     @involved.setter
     def involved(self, new_involved: list):
-        User.instances[self.username]['involved'] = new_involved
+        User.instances[self.username]['involved'] = [
+            x.id for x in new_involved]
 
+    @staticmethod
     def exists(user: (User | str)) -> bool:
         if type(user) == str:
             return user in User.instances.keys()
@@ -167,63 +136,22 @@ class User:
 class Task:
     instances = dict()
 
-    def __init__(self, name: str = "", description: str = "", start_time: datetime = datetime.now(),
-                 end_time: datetime = datetime.now() + timedelta(days=1), members: set = set(), priority: Priority = Priority.LOW,
-                 status: Status = Status.BACKLOG, history: list = [], comments: list = [], **kwargs) -> None:
-        id = None
-        if "id" in kwargs:
-            id = kwargs["id"]
-            if id not in Task.instances.keys():
-                raise ValueError('Invalid task ID!')
-        else:
-            id = str(uuid.uuid4())
-            data = dict()
-            data["name"] = name
-            data["description"] = description
-            data["start_time"] = start_time
-            data["end_time"] = end_time
-            data["members"] = members
-            data["priority"] = priority
-            data["status"] = status
-            data["history"] = history
-            data["comments"] = comments
-            Task.instances[id] = data
+    def __init__(self, raw_dict=dict(), id=None) -> None:
+        if id == None:
+            id = uuid.uuid4()
+            Task.instances[id] = raw_dict
         self.id = id
 
-    def dump(self):
-        data = Task.instances[self.id].copy()
-        data["start_time"] = str(data["start_time"])
-        data["end_time"] = str(self.end_time)
-        data["members"] = [x.username for x in self.members]
-        data["priority"] = self.priority.name
-        data["status"] = self.status.name
-        return data
-
-    def load(self, raw_dict: dict):
-        data = raw_dict.copy()
-        data["start_time"] = datetime.strptime(
-            data["start_time"], "%Y-%m-%d %H:%M:%S.%f")
-        data["end_time"] = datetime.strptime(
-            data["end_time"], "%Y-%m-%d %H:%M:%S.%f")
-        data["members"] = {User(username=x) for x in data["members"]}
-        data["priority"] = PRIORITY_DICT[data["priority"]]
-        data["status"] = STATUS_DICT[data["status"]]
-        Task.instances[self.id] = data
+    def __eq__(self, other: Task):
+        return self.id == other.id
 
     @classmethod
     def load_from_file(cls):
-        data = load_data(TASKS_FILE_PATH)
-        for task_id in data.keys():
-            task_data = data[task_id]
-            task = Task()
-            task.load(task_data)
-            Task.instances[task_id] = Task.instances.pop(task.id)
+        Task.instances = load_data(TASKS_FILE_PATH)
 
     @classmethod
     def dump_to_file(cls):
-        data = Task.instances.copy()
-        data = {x: Task(id=x).dump() for x in data.keys()}
-        save_data(data, TASKS_FILE_PATH)
+        save_data(Task.instances, TASKS_FILE_PATH)
 
     @property
     def name(self):
@@ -243,43 +171,45 @@ class Task:
 
     @property
     def start_time(self):
-        return Task.instances[self.id]['start_time']
+        return datetime.strptime(
+            Task.instances[self.id]["start_time"], "%Y-%m-%d %H:%M:%S.%f")
 
     @start_time.setter
     def start_time(self, new_start_time):
-        Task.instances[self.id]['start_time'] = new_start_time
+        Task.instances[self.id]['start_time'] = str(new_start_time)
 
     @property
     def end_time(self):
-        return Task.instances[self.id]['end_time']
+        return datetime.strptime(
+            Task.instances[self.id]["end_time"], "%Y-%m-%d %H:%M:%S.%f")
 
     @end_time.setter
     def end_time(self, new_end_time):
-        Task.instances[self.id]['end_time'] = new_end_time
+        Task.instances[self.id]['end_time'] = str(new_end_time)
 
     @property
     def members(self):
-        return Task.instances[self.id]['members']
+        return {User(x) for x in Task.instances[self.id]['members']}
 
     @members.setter
     def members(self, new_members):
-        Task.instances[self.id]['members'] = new_members
+        Task.instances[self.id]['members'] = [x.username for x in new_members]
 
     @property
     def priority(self):
-        return Task.instances[self.id]['priority']
+        return PRIORITY_DICT[Task.instances[self.id]['priority']]
 
     @priority.setter
-    def priority(self, new_priority):
-        Task.instances[self.id]['priority'] = new_priority
+    def priority(self, new_priority: Priority):
+        Task.instances[self.id]['priority'] = new_priority.name
 
     @property
     def status(self):
-        return Task.instances[self.id]['status']
+        return STATUS_DICT[Task.instances[self.id]['status']]
 
     @status.setter
-    def status(self, new_status):
-        Task.instances[self.id]['status'] = new_status
+    def status(self, new_status: Status):
+        Task.instances[self.id]['status'] = new_status.name
 
     @property
     def history(self):
@@ -319,8 +249,8 @@ class Task:
         # Add user to the project:
         task_members.add(user)
         self.members = task_members
-        console.print(
-            f"User '{user.username}' added to task '{self.name}'", style='success')
+        print(f"User '{user.username}' added to task '{
+              self.name}'", style='success')
 
     def remove_member(self, user: User) -> None:
         # Check if the user exists:
@@ -334,63 +264,28 @@ class Task:
         members = self.members
         members.remove(user)
         self.members = members
-        console.print(
-            f"User '{user.username}' removed from task '{self.name}'", style='success')
+        print(f"User '{user.username}' removed from task '{
+              self.name}'", style='success')
 
 
 class Project:
     instances = dict()
 
-    def __init__(self, id: str, title: str = None, leader: User = None, members: set = set(), tasks: set = set()) -> None:
+    def __init__(self, id: str, raw_dict=dict()) -> None:
         self.id = id
         if id not in Project.instances.keys():
-            if leader == None:
-                raise ValueError(
-                    "Invalid project ID or missing project title/leadder.")
-            if leader:
-                leader.leading.add(self)
-            for member in members:
-                member.involved.add(self)
+            Project.instances[id] = raw_dict
 
-            # Creating and setting the data for instances
-            data = dict()
-            data['title'] = title
-            data['leader'] = leader
-            data['members'] = members  # list of User instances
-            data['tasks'] = tasks      # list of task identifiers or objects
-            Project.instances[id] = data
-
-    def dump(self):
-        data = Project.instances[self.id].copy()
-        data["leader"] = self.leader.username
-        data["members"] = [x.username for x in self.members]
-        data["tasks"] = [x.id for x in self.tasks]
-        return data
-
-    def load(self, raw_dict: dict):
-        data = raw_dict.copy()
-        data["leader"] = User(data["leader"])
-        data["members"] = {User(x) for x in data["members"]}
-        data["tasks"] = {Task(id=x) for x in data["tasks"]}
-        Project.instances[self.id] = data
-        self.leader.leading.add(self)
-        for member in self.members:
-            member.involved.add(self)
+    def __eq__(self, other: Project):
+        return self.id == other.id
 
     @classmethod
     def load_from_file(cls):
-        data = load_data(PROJECTS_FILE_PATH)
-        for project_id in data.keys():
-            project_data = data[project_id]
-            project = Project(id=project_id, leader=User(
-                project_data["leader"]))
-            project.load(project_data)
+        Project.instances = load_data(PROJECTS_FILE_PATH)
 
     @classmethod
     def dump_to_file(cls):
-        data = Project.instances.copy()
-        data = {x: Project(id=x).dump() for x in data.keys()}
-        save_data(data, PROJECTS_FILE_PATH)
+        save_data(Project.instances, PROJECTS_FILE_PATH)
 
     @property
     def title(self):
@@ -402,27 +297,28 @@ class Project:
 
     @property
     def leader(self):
-        return Project.instances[self.id]['leader']
+        return User(Project.instances[self.id]['leader'])
 
     @leader.setter
-    def leader(self, new_leader):
-        Project.instances[self.id]['leader'] = new_leader
+    def leader(self, new_leader: User):
+        Project.instances[self.id]['leader'] = new_leader.username
 
     @property
     def members(self):
-        return Project.instances[self.id]['members']
+        return {User(x) for x in Project.instances[self.id]['members']}
 
     @members.setter
     def members(self, new_members):
-        Project.instances[self.id]['members'] = new_members
+        Project.instances[self.id]['members'] = [
+            x.username for x in new_members]
 
     @property
     def tasks(self):
-        return Project.instances[self.id]['tasks']
+        return {Task(x) for x in Project.instances[self.id]['tasks']}
 
     @tasks.setter
     def tasks(self, new_tasks):
-        Project.instances[self.id]['tasks'] = new_tasks
+        Project.instances[self.id]['tasks'] = [x.id for x in new_tasks]
 
     def exists(project: (Project | str)) -> bool:
         if type(project) == str:
@@ -432,6 +328,8 @@ class Project:
         raise ValueError(f'wrong type of argument({type(project)})')
 
     def has_member(self, user: User) -> bool:
+        print(self.members)
+        print(user)
         return user in self.members
 
     def is_leader(self, user: User) -> bool:
@@ -462,8 +360,8 @@ class Project:
         involved.add(self)
         user.involved = involved
 
-        console.print(f"User '{user.username}' added to project",
-                      f"'{self.title}'", style='success', sep=' ')
+        print(f"User '{user.username}' added to project",
+              f"'{self.title}'", style='success', sep=' ')
 
     def remove_member(self, user: User) -> None:
         # Check if the user exists:
@@ -510,8 +408,8 @@ class Project:
         tasks.add(task)
         self.tasks = tasks
 
-        console.print(f"Task '{task.name}' added to project '{
-                      self.title}'", style='success')
+        print(f"Task '{task.name}' added to project '{
+            self.title}'", style='success')
 
     def remove_task(self, task: Task):
         # Check if the task exists:
