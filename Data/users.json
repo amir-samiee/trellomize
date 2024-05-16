@@ -10,5 +10,13 @@
     "involved": [
       "newProject"
     ]
+  },
+  "alexb": {
+    "name": "Alex Brown",
+    "email": "alexb@gmail.com",
+    "password": "gAAAAABmRlagHX_qJr_uwOnsUUfbt1cqSpW7zDXSIwwfvinj9Ivi9ZRIjRXRWwF-EKrhMCFJ6qnu3fkZosGnaSsqbOljEd7VmQ==",
+    "is_active": true,
+    "involved": [],
+    "leading": []
   }
 }

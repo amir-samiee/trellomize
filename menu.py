@@ -27,6 +27,7 @@ class Menu:
         if password == "0":
             return
         User.current = User(username)
+        Menu.main()
 
     @staticmethod
     def signup():
@@ -35,7 +36,8 @@ class Menu:
         # getting name
         message = f"{
             COLORED_TITLE}\n\n[italic green]Signup:[/]\n$$error$$\nenter your name (0 to go back): "
-        name = get_input(message)
+        name = get_input(message, limiting_function=lambda x: len(
+            x) > 0, error_message="empty string not accepted")
         if name == "0":
             return
 
@@ -43,7 +45,7 @@ class Menu:
         message += name + "\nenter your username (0 to go back): "
         username = get_input(
             message, limiting_function=lambda x: x and x not in User.instances.keys(
-            ) and " " not in x and "\t" not in x,
+            ) and id_is_valid(x),
             error_message="Invalid username! Username already exists, includes whitespaces or is empty")
         if username == "0":
             return
@@ -71,16 +73,87 @@ class Menu:
             return
 
         password = encrypted(password)
-        user = User(username, password=password, name=name, email=email)
+        user = User(username, name, email, password)
         save()
         User.current = user
         print("you successfully signed up! press enter to continue: ",
               style="success")
         input()
+        Menu.main()
+
+    @staticmethod
+    def new_project():
+        clear_screen()
+
+        options = "[title]NEW PROJECT[/]\n\n$$error$$\n(enter 0 to go back anytime)\nenter project's title: "
+        title = get_input(options, limiting_function=lambda x: len(
+            x) > 0, error_message="empty string not accepted")
+        if title == "0":
+            return
+
+        options += title + "\nenter an id: "
+        id = get_input(options, limiting_function=lambda x: x not in Project.instances.keys(
+        ) and id_is_valid(x), error_message="id already exists or contains whitespaces")
+        if id == "0":
+            return
+
+        options += id + "\nenter usernames to add to project, seperated by spaces: "
+        members = get_input(options).split()
+        project = Project(id, title, User.current)
+        for username in members:
+            member = None
+            try:
+                member = User(username)
+            except ValueError:
+                print(f"Unable to add [cyan]{
+                      username}[/]: [error]user doesn't exist[/]")
+            else:
+                project.add_member(member)
+                print(f"{username} successfully added!", style="success")
+        input("press enter to continue: ")
+
+    @staticmethod
+    def display_projects(projects: list, leading: bool):
+        clear_screen()
+        for project in projects:
+            print(project.id)
+        input()
+
+    @staticmethod
+    def projects():
+        options = f"{
+            COLORED_TITLE}\n\n$$error$$\n1. New Project\n2. Involved Projects\n3. Leading Projects\n0. Back\n\nenter your choice: "
+        choice = get_input(options, range(4), return_type=int)
+        match(choice):
+            case 1:
+                Menu.new_project()
+            case 2:
+                Menu.display_projects(list(User.current.involved), False)
+            case 3:
+                Menu.display_projects(list(User.current.leading), True)
+            case 0:
+                return
+
+    @staticmethod
+    def edit_profile():
+        pass
 
     @staticmethod
     def main():
-        pass
+        options = f"{
+            COLORED_TITLE}\n\n$$error$$\n1. Projects\n2. Edit Profile\n3. Logout\n0. Exit\n\nenter your choice: "
+        while True:
+            choice = get_input(options, range(4), return_type=int)
+            match(choice):
+                case 1:
+                    Menu.projects()
+                case 2:
+                    Menu.edit_profile()
+                case 3:
+                    User.current = None
+                    return
+                case 0:
+                    save_quit()
 
     @staticmethod
     def starting():
@@ -97,4 +170,3 @@ class Menu:
                 case 0:
                     save()
                     quit()
-            Menu.main()
