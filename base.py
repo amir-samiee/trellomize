@@ -215,8 +215,9 @@ class Task:
         data = load_data(TASKS_FILE_PATH)
         for task_id in data.keys():
             task_data = data[task_id]
-            task = Task(id=task_id)
+            task = Task()
             task.load(task_data)
+            Task.instances[task_id] = Task.instances.pop(task.id)
 
     @classmethod
     def dump_to_file(cls):
@@ -296,6 +297,7 @@ class Task:
     def comments(self, new_comments):
         Task.instances[self.id]['comments'] = new_comments
 
+    @staticmethod
     def exists(task: (Task | str)) -> bool:
         if type(task) == str:
             return task in Task.instances.keys()
@@ -342,7 +344,7 @@ class Project:
     def __init__(self, id: str, title: str = None, leader: User = None, members: set = set(), tasks: set = set()) -> None:
         self.id = id
         if id not in Project.instances.keys():
-            if title == None or leader == None:
+            if leader == None:
                 raise ValueError(
                     "Invalid project ID or missing project title/leadder.")
             if leader:
@@ -380,7 +382,8 @@ class Project:
         data = load_data(PROJECTS_FILE_PATH)
         for project_id in data.keys():
             project_data = data[project_id]
-            project = Project(id=project_id)
+            project = Project(id=project_id, leader=User(
+                project_data["leader"]))
             project.load(project_data)
 
     @classmethod
@@ -497,7 +500,7 @@ class Project:
         if not Task.exists(task):
             # console.print(f"User does not exist", style='error')
             raise ValueError("task does not exist")
-        
+
         # Check if the task is already in the project:
         if task.id in [t.id for t in self.tasks]:
             raise ValueError('Task already exists in the project')
@@ -507,24 +510,26 @@ class Project:
         tasks.add(task)
         self.tasks = tasks
 
-        console.print(f"Task '{task.name}' added to project '{self.title}'", style='success')
+        console.print(f"Task '{task.name}' added to project '{
+                      self.title}'", style='success')
 
     def remove_task(self, task: Task):
         # Check if the task exists:
         if not Task.exists(task):
             # console.print(f"User does not exist", style='error')
             raise ValueError("Task does not exist")
-        
+
         # Check if the task is in  the project:
         if task.id not in [t.id for t in self.tasks]:
             raise ValueError('Task is not in the project')
-        
+
         # Remove task from the project:
         tasks = self.tasks
         tasks.remove(task)
         self.tasks = tasks
-        
-        console.print(f"Task '{task.name}' removed from project '{self.title}'", style='success')
+
+        console.print(f"Task '{task.name}' removed from project '{
+                      self.title}'", style='success')
 
     def add_member_to_task(self, user: User, task: Task) -> None:
         if not User.exists(user):
