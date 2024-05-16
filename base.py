@@ -74,6 +74,14 @@ class User:
         else:
             self.username = username
 
+    def __eq__(self, other: User):
+        if not isinstance(other, User):
+            return False
+        return self.username == other.username
+
+    def __hash__(self):
+        return hash(self.username)
+
     def dump(self) -> dict:
         data = User.instances[self.username].copy()
         data["leading"] = [x.id for x in data["leading"]]
@@ -190,6 +198,14 @@ class Task:
             Task.instances[id] = data
         self.id = id
 
+    def __eq__(self, other: Task):
+        if not isinstance(other, Task):
+            return False
+        return self.id == other.id
+
+    def __hash__(self):
+        return hash(self.id)
+
     def dump(self):
         data = Task.instances[self.id].copy()
         data["start_time"] = str(data["start_time"])
@@ -205,7 +221,7 @@ class Task:
             data["start_time"], "%Y-%m-%d %H:%M:%S.%f")
         data["end_time"] = datetime.strptime(
             data["end_time"], "%Y-%m-%d %H:%M:%S.%f")
-        data["members"] = {User(username=x) for x in data["members"]}
+        data["members"] = set([User(x) for x in data["members"]])
         data["priority"] = PRIORITY_DICT[data["priority"]]
         data["status"] = STATUS_DICT[data["status"]]
         Task.instances[self.id] = data
@@ -359,6 +375,14 @@ class Project:
             data['members'] = members  # list of User instances
             data['tasks'] = tasks      # list of task identifiers or objects
             Project.instances[id] = data
+
+    def __eq__(self, other: Task):
+        if not isinstance(other, Task):
+            return False
+        return self.id == other.id
+
+    def __hash__(self):
+        return hash(self.id)
 
     def dump(self):
         data = Project.instances[self.id].copy()

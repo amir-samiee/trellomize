@@ -13,6 +13,14 @@ class Menu:
         if username == "0":
             return
         user = User(username)
+        if not user.is_active:
+            # print(message)
+            # print("Your account has been deactivated by the system admin! Press enter to go bacck to the first page: ", style="error")
+            message += username + \
+                "\n[error]Your account has been deactivated by the system admin!\nPress enter to go bacck to the first page: [/]"
+            get_input(message)
+            # input()
+            return
         message += username + "\nenter your password (0 to go back): "
         password = get_input(
             message, included=[decrypted(user.password), "0"], error_message="wrong password", is_pass=True)
