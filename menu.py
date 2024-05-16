@@ -85,7 +85,7 @@ class Menu:
     def new_project():
         clear_screen()
 
-        options = "[title]NEW PROJECT[/]\n\n$$error$$\n(enter 0 to go back anytime)\nenter project's title: "
+        options = "[title]NEW PROJECT[/]\n$$error$$\n(enter 0 to go back anytime)\nenter project's title: "
         title = get_input(options, limiting_function=lambda x: len(
             x) > 0, error_message="empty string not accepted")
         if title == "0":
@@ -98,7 +98,7 @@ class Menu:
             return
 
         options += id + "\nenter usernames to add to project, seperated by spaces: "
-        members = get_input(options).split()
+        members = set(get_input(options).split()) - {User.current.username}
         project = Project(id, title, User.current)
         for username in members:
             member = None
@@ -110,29 +110,54 @@ class Menu:
             else:
                 project.add_member(member)
                 print(f"{username} successfully added!", style="success")
-        input("press enter to continue: ")
+        input("press enter to go to the project: ")
+        Menu.display_project(project, True)
+
+    @staticmethod
+    def display_project(project: Project, leading: bool):
+        clear_screen()
+        print("TITLE: ", style="cyan")
+        print("\t", project.title, style="green")
+        print("ID: ", style="cyan")
+        print("\t", project.id, style="green")
+        print("LEADER: ", style="cyan")
+        print("\t", project.leader, style="green")
+        print("MEMBERS: ", style="cyan")
+        print("\t", *project.members, style="green")
+        print("TASKS: ", style="cyan")
+        for task in project.tasks:
+            print("\t[green]" + task.name+"\t[color(37)]" + task.description)
+        input()
 
     @staticmethod
     def display_projects(projects: list, leading: bool):
-        clear_screen()
-        for project in projects:
-            print(project.id)
-        input()
+        while True:
+            clear_screen()
+            options = f"[title]{
+                ["Involved", "Leading"][leading]} Projects[/]\n"
+            for i in range(len(projects)):
+                options += "\n" + str(i + 1) + ". " + projects[i].id
+            options += "\n0. Back\n$$error$$\nenter your choice "
+            choice = get_input(options, range(len(projects) + 1))
+            if choice == "0":
+                return
+            Menu.display_project(projects[i], leading)
 
     @staticmethod
     def projects():
         options = f"{
             COLORED_TITLE}\n\n$$error$$\n1. New Project\n2. Involved Projects\n3. Leading Projects\n0. Back\n\nenter your choice: "
-        choice = get_input(options, range(4), return_type=int)
-        match(choice):
-            case 1:
-                Menu.new_project()
-            case 2:
-                Menu.display_projects(list(User.current.involved), False)
-            case 3:
-                Menu.display_projects(list(User.current.leading), True)
-            case 0:
-                return
+        while True:
+            choice = get_input(options, range(4), return_type=int)
+            match(choice):
+                case 1:
+                    Menu.new_project()
+                case 2:
+                    Menu.display_projects(list(User.current.involved), False)
+                case 3:
+                    Menu.display_projects(list(User.current.leading), True)
+                case 0:
+                    return
 
     @staticmethod
     def edit_profile():

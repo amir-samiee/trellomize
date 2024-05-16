@@ -76,6 +76,9 @@ class User:
     def __hash__(self):
         return hash(self.username)
 
+    def __repr__(self):
+        return self.username
+
     def dump(self) -> dict:
         data = User.instances[self.username].copy()
         data["leading"] = [x.id for x in data["leading"]]
