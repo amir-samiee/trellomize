@@ -78,6 +78,7 @@ class SystemManager:
             console.print("No admin exists", style='error')
             return False
 
+    # Diactivates the given user:
     def ban(self, username: str):
         if self.is_admin():
 
@@ -91,6 +92,7 @@ class SystemManager:
             tools.save_data(data, self.users_file)
             console.print(f"User '{username}' banned", style='success')
 
+    # Prints users:
     def view(self, substring=''):
         user_dict = tools.handeled_load_data(self.users_file)
         i = 1
