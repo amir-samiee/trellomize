@@ -315,7 +315,7 @@ class Task:
     def has_member(self, user: User) -> bool:
         return user in self.members
 
-    def add_member(self, user: User) -> None:
+    def add_member(self, user: User, is_viewed: bool = False) -> None:
         # Check if the user exists:
         if not User.exists(user):
             raise ValueError("User does not exist")
@@ -326,10 +326,10 @@ class Task:
         # Add user to the project:
         task_members.add(user)
         self.members = task_members
-        print(f"User '{user.username}' added to task '{
-              self.name}'", style='success')
+        if is_viewed:
+            print(f"User '{user.username}' added to task '{self.name}'", style='success')
 
-    def remove_member(self, user: User) -> None:
+    def remove_member(self, user: User, is_viewed: bool = False) -> None:
         # Check if the user exists:
         if not User.exists(user):
             raise ValueError(f"User does not exist")
@@ -341,8 +341,8 @@ class Task:
         members = self.members
         members.remove(user)
         self.members = members
-        print(f"User '{user.username}' removed from task '{
-              self.name}'", style='success')
+        if is_viewed:
+            print(f"User '{user.username}' removed from task '{self.name}'", style='success')
 
 
 class Project:
@@ -419,7 +419,7 @@ class Project:
 
     @property
     def tasks(self):
-        return {Task(x) for x in Project.instances[self.id]['tasks']}
+        return {Task(id=x) for x in Project.instances[self.id]['tasks']}
 
     @tasks.setter
     def tasks(self, new_tasks):
@@ -440,8 +440,24 @@ class Project:
 
     def task_belongs(self, task: Task) -> bool:
         return task in self.tasks
+    
+    def remove(self):
+        # Remove project from leaders leading projects:
+        self.leader.leading = set([proj for proj in list(self.leader.leading) if proj!= self])
 
-    def add_member(self, user: User) -> None:
+        # Remove project from members involved projects:
+        for member in self.members:
+            member.involved = set([proj for proj in list(member.involved) if proj!=self])
+
+        # Remove tasks from task instances:
+        for task in self.tasks:
+            del Task.instances[task.id]
+
+        # Remove project from project instances:
+            del Project.instances[self.id]
+
+
+    def add_member(self, user: User, is_viewed: bool = False) -> None:
         # Check if the user exists:
         if not User.exists(user):
             # console.print(f"User does not exist", style='error')
@@ -463,10 +479,11 @@ class Project:
         involved.add(self)
         user.involved = involved
 
-        # print(f"User '{user.username}' added to project",
-        #       f"'{self.title}'", style='success', sep=' ')
+        if is_viewed:
+            print(f"User '{user.username}' added to project",
+                   f"'{self.title}'", style='success', sep=' ')
 
-    def remove_member(self, user: User) -> None:
+    def remove_member(self, user: User, is_viewed: bool = False) -> None:
         # Check if the user exists:
         if not User.exists(user):
             # console.print(f"User does not exist", style='error')
@@ -493,10 +510,11 @@ class Project:
         involved.remove(self)
         user.involved = involved
 
-        console.print(f"User '{user.username}' removed from project",
-                      f"'{self.title}'", style='success', sep=' ')
+        if is_viewed:
+            console.print(f"User '{user.username}' removed from project",
+                          f"'{self.title}'", style='success', sep=' ')
 
-    def add_task(self, task: Task):
+    def add_task(self, task: Task, is_viewed: bool = False):
         # Check if the task exists:
         if not Task.exists(task):
             # console.print(f"User does not exist", style='error')
@@ -510,11 +528,14 @@ class Project:
         tasks = self.tasks
         tasks.add(task)
         self.tasks = tasks
+        print(list(self.tasks)[0].name)
 
-        print(f"Task '{task.name}' added to project '{
-            self.title}'", style='success')
+        if is_viewed:
+            print(f"Task '{task.name}' added to project",
+                  f"'{self.title}'", style='success', sep=' ')
 
-    def remove_task(self, task: Task):
+    
+    def remove_task(self, task: Task, is_viewed: bool = False):
         # Check if the task exists:
         if not Task.exists(task):
             # console.print(f"User does not exist", style='error')
@@ -529,10 +550,11 @@ class Project:
         tasks.remove(task)
         self.tasks = tasks
 
-        console.print(f"Task '{task.name}' removed from project '{
-                      self.title}'", style='success')
+        if is_viewed:
+            console.print(f"Task '{task.name}' removed from project", 
+                          f"'{self.title}'", style='success', sep=' ')
 
-    def add_member_to_task(self, user: User, task: Task) -> None:
+    def add_member_to_task(self, user: User, task: Task, is_viewed: bool = False) -> None:
         if not User.exists(user):
             # console.print(f"User does not exist", style='error')
             raise ValueError(f"User does not exist")
@@ -546,9 +568,9 @@ class Project:
         if not self.task_belongs(task):
             raise ValueError('The given task does not exist')
 
-        task.add_member(user)
+        task.add_member(user, is_viewed)
 
-    def remove_member_from_task(self, user: User, task: Task) -> None:
+    def remove_member_from_task(self, user: User, task: Task, is_viewed: bool = False) -> None:
         if not User.exists(user):
             # console.print(f"User does not exist", style='error')
             raise ValueError(f"User does not exist")
@@ -558,7 +580,7 @@ class Project:
             # console.print('The given task does not exist', style='error')
             raise ValueError('The given task does not exist')
 
-        task.remove_member(user)
+        task.remove_member(user, is_viewed)
 
 
 def init_program():
