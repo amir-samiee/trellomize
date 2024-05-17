@@ -41,7 +41,7 @@ def advanced_user():
     return user, proj1, proj2
 
 
-def user_init_check(user, username, password, name='', email='', active=True, leading=[], involved=[]):
+def validate_user_parameters(user, username, password, name='', email='', active=True, leading=[], involved=[]):
     assert user.username in User.instances
     assert user.username == username
 
@@ -60,13 +60,23 @@ def user_init_check(user, username, password, name='', email='', active=True, le
     assert User.instances[user.username]['leading'] == [p.id for p in leading]
     assert user.leading == set(leading)
 
-    assert User.instances[user.username]['involved'] == [p.id for p in involved]
+    assert User.instances[user.username]['involved'] == [
+        p.id for p in involved]
     assert user.involved == set(involved)
 
 
 def test_user_intialization_with_default_parameters(clear_instances, basic_user):
-    user_init_check(basic_user, 'user', 'password')
+    validate_user_parameters(basic_user, 'user', 'password')
+
 
 def test_intialization_with_custom_parameters(clear_instances, advanced_user):
     user, involved_proj, leading_proj = advanced_user
-    user_init_check(user, 'user', 'password', 'name', 'user@example.com', True, [leading_proj], [involved_proj])
+    validate_user_parameters(user, 'user', 'password', 'name',
+                             'user@example.com', True, [leading_proj], [involved_proj])
+
+
+def test_reintialization_with_username(clear_instances, basic_user):
+    user = basic_user
+    reloaded_user = User(username=user.username)
+    validate_user_parameters(reloaded_user, user.username, user.password,
+                             user.name, user.email, user.is_active, user.leading, user.involved)

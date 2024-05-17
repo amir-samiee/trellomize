@@ -141,8 +141,8 @@ def test_task_properties(clear_instances, advanced_task, userfactory):
                              Status.DONE, {user}, new_start_time, new_end_time)
 
 
-def test_task_exists(clear_instances, basic_task):
-    task = basic_task
+def test_task_exists(clear_instances):
+    task = Task()
     assert Task.exists(task.id)
     assert Task.exists(task)
     assert not Task.exists("nonexistent_id")
@@ -161,15 +161,15 @@ def test_dump_task_to_file(mock_save_data, clear_instances):
     mock_save_data.assert_called_once_with(sample_tasks, TASKS_FILE_PATH)
 
 
-def test_task_has_member(clear_instances, basic_task, advanced_task, userfactory):
-    task = basic_task
+def test_task_has_member(clear_instances, advanced_task, userfactory):
+    task = Task()
     assert not task.has_member(userfactory())
-    task, user1 = advanced_task
+    task, user1, _, _ = advanced_task
     assert task.has_member(user1)
 
 
-def test_task_add_member(clear_instances, basic_task, userfactory):
-    task = basic_task
+def test_task_add_member(clear_instances, userfactory):
+    task = Task()
     user1 = userfactory()
     task.add_member(user1)
     assert user1 in task.members
@@ -178,7 +178,7 @@ def test_task_add_member(clear_instances, basic_task, userfactory):
 
 
 def test_task_remove_member(clear_instances, advanced_task):
-    task, user1 = advanced_task
+    task, user1, _, _ = advanced_task
     task.remove_member(user1)
     assert user1 not in task.members
     with pytest.raises(ValueError):
