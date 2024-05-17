@@ -358,7 +358,7 @@ class Project:
         if id not in Project.instances.keys():
             if leader == None:
                 raise ValueError(
-                    "Invalid project ID or missing project title/leadder.")
+                    "Invalid project ID or missing project title/leader.")
             # Creating and setting the data for instances
             Project.instances[id] = dict()
             self.title = title
