@@ -4,6 +4,7 @@ from typing import Any, Iterable
 from rich.console import Console
 from rich.theme import Theme
 from rich import box
+from rich.text import Text
 from rich.table import Table
 from cryptography.fernet import Fernet
 from getpass import getpass
@@ -49,7 +50,7 @@ def get_bool_input(message: str, true: str, false: str, cls=True) -> bool:
 
 
 def get_input(message: str, included: Iterable = [], excluded: Iterable = [], cls=True, limiting_function=lambda x: True,
-              error_message="invalid input", return_type=str, is_pass=False):
+              error_message="invalid input", return_type=str, is_pass=False, operation=None):
     included = [str(x) for x in included]
     excluded = [str(x) for x in excluded]
 
@@ -68,6 +69,8 @@ def get_input(message: str, included: Iterable = [], excluded: Iterable = [], cl
 
         is_valid = True
         modified_message = message.replace(error_sign, replacement)
+        if operation:
+            operation()
         print(modified_message, end="")
         choice = None
         if is_pass:
@@ -216,7 +219,7 @@ def id_is_valid(id: str) -> bool:
     return id and " " not in id and "\t" not in id
 
 
-def merge_tables(*args: Table) -> Table:
+def merged_tables(*args: Table) -> Table:
     table = Table(show_header=False, show_edge=False,
                   box=box.HORIZONTALS,)
     for _ in range(len(args)):

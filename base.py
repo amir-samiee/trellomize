@@ -454,6 +454,7 @@ class Project:
             row_styles=["none", "dim"],
         )
         headers = sorted(list(Status), key=lambda x: x.value)
+        table.add_column("[cyan bold]No.[/]", style="cyan")
         colors = ["green", "blue", "yellow", "purple", "color(214)"]
         for i in range(5):
             color = colors[i]
@@ -461,20 +462,24 @@ class Project:
             table.add_column(header, style=color, overflow="fold")
         partition = self.partitioned()
         columns = [partition[header] for header in headers]
+        i = 1
         for items in zip_longest(*columns):
-            items = [x.name if isinstance(x, Task) else "" for x in items]
+            items = [str(i)+"."] + [x.name if isinstance(x, Task)
+                                    else "" for x in items]
             table.add_row(*items)
+            i += 1
         return table
 
     def info_table(self) -> Table:
         table1 = Table(
             show_header=False,
+            # row_styles=["none", "dim"],
             box=box.SIMPLE,
         )
         table1.add_column(style="red")
         table1.add_column(style="blue", overflow="fold")
         table1.add_row("TITLE:", self.title)
-        table1.add_row("ID:", self.id)
+        table1.add_row("ID:", Text(self.id, style="dim blue"))
         table1.add_row("LEADER:", self.leader.username)
         table2 = Table(
             show_header=False,
@@ -489,7 +494,7 @@ class Project:
             items = [str(x) if x != None else "" for x in items]
             table2.add_row(*items)
         # table2.add_row("MEMBERS:", members)
-        return merge_tables(table1, table2)
+        return merged_tables(table1, table2)
 
     def exists(project: (Project | str)) -> bool:
         if type(project) == str:

@@ -116,13 +116,77 @@ class Menu:
         Menu.display_project(project, True)
 
     @staticmethod
-    def display_project(project: Project, leading: bool):
-        clear_screen()
-        tasks_table = project.tasks_table()
-        info_table = project.info_table()
-        table = merge_tables(tasks_table, info_table)
-        print(table)
+    def display_task(task: Task, leading: bool):
+        print(task.id)
+        print(task.name)
         input()
+
+    @staticmethod
+    def add_task(project):
+        pass
+
+    @staticmethod
+    def edit_project(project):
+        pass
+
+    @staticmethod
+    def display_project(project: Project, leading: bool):
+        while True:
+            clear_screen()
+            tasks_table = project.tasks_table()
+            info_table = project.info_table()
+            table = merged_tables(tasks_table, info_table)
+
+            def op():
+                print(table)
+            included = [
+                x.name + f" {y+1}" for x in Status for y in range(len(project.partitioned()[x]))]
+            message = ""
+            if leading:
+                message += "1. Add Membeer  2. Remove Member    3. Add Task\n"
+                message += "4. Edit Info    5. Remove Project   0. Back\n"
+                included += [str(x) for x in range(6)]
+            message += "\nenter \"<status> <number>\" to specify a task"
+            message += "\nenter your choice: "
+            choice = get_input(message, limiting_function=lambda x: x.upper(
+            ) in included, operation=op)
+            message += choice + "\n"
+            try:
+                choice = int(choice)
+            except:
+                pass
+            match choice:
+                case 1:
+                    choice = get_input(message + "enter usernname (0 to cancel): ",
+                                       {0} | User.instances.keys() - project.members, operation=op)
+                    if choice == "0":
+                        continue
+                    project.add_member(User(choice))
+                case 2:
+                    choice = get_input(
+                        message + "enter username (0 to cancel): ", {0} | project.members, operation=op)
+                    if choice == "0":
+                        continue
+                    project.remove_member(User(choice))
+                case 3:
+                    Menu.add_task(project)
+                case 4:
+                    Menu.edit_project(project)
+                case 5:
+                    choice = input(
+                        "are you [warning]SURE[/] you want to remove this project? (y/n): ")
+                    if choice == "y":
+                        project.remove()
+                        return
+                    input("removing canceled! press enter to continue: ")
+                case 0:
+                    return
+                case _:
+                    st, index = choice.split()
+                    st = STATUS_DICT[st.upper()]
+                    index = int(index) - 1
+                    Menu.display_task(project.partitioned()
+                                      [st][index], leading)
 
     @staticmethod
     def display_projects(projects: list, leading: bool):
