@@ -80,3 +80,68 @@ def test_reintialization_with_username(clear_instances, basic_user):
     reloaded_user = User(username=user.username)
     validate_user_parameters(reloaded_user, user.username, user.password,
                              user.name, user.email, user.is_active, user.leading, user.involved)
+
+
+def test_error_if_intialized_with_invalid_username(clear_instances):
+    with pytest.raises(ValueError):
+        User(username='nonexistent_username')
+
+
+def test_user_eq(clear_instances, userfactory):
+    user1 = userfactory()
+    user2 = User(username=user1.username)
+    user3 = userfactory()
+    assert user1 == user2
+    assert user1 != user3
+
+
+def test_user_hash(clear_instances, userfactory):
+    user1 = userfactory()
+    user2 = User(username=user1.username)
+    user3 = userfactory()
+
+    assert hash(user1) == hash(user2)
+    assert hash(user1) != hash(user3)
+
+
+def test_user_repr(clear_instances, basic_user):
+    assert repr(basic_user) == basic_user.username
+
+
+def test_user_properties(clear_instances, basic_user, basic_project):
+    proj, _ = basic_project
+    proj2 = Project('idd', 'title', leader=basic_user)
+    basic_user.name = 'newname'
+    basic_user.email = 'newmail@example.com'
+    basic_user.password = 'newpass'
+    basic_user.is_active = False
+    basic_user.leading = [proj2]
+    basic_user.involved = [proj]
+    validate_user_parameters(basic_user, basic_user.username, 'newpass', 'newname',
+                             'newmail@example.com', False, [proj2], [proj])
+
+
+def test_user_exists_test(clear_instances, basic_user):
+    assert User.exists(basic_user)
+    assert User.exists(basic_user.username)
+    assert not User.exists(f"not{basic_user.username}")
+
+
+def test_user_dump(clear_instances, advanced_user):
+    user, _, _ = advanced_user
+    data = user.dump()
+    assert user.leading == {Project(id=x) for x in data["leading"]}
+    assert user.involved == {Project(id=x) for x in data["involved"]}
+
+
+@patch('base.load_data', MagicMock(return_value=sample_users))
+def test_load_user_from_file(clear_instances):
+    User.load_from_file()
+    assert User.instances == sample_users
+
+
+@patch('base.save_data')
+def test_save_user_to_file(mock_save_data, clear_instances):
+    User.instances = sample_users
+    User.dump_to_file()
+    mock_save_data.assert_called_once_with(sample_users, USERS_FILE_PATH)

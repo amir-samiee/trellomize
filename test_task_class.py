@@ -115,7 +115,9 @@ def test_error_if_intializing_with_invalid_id(clear_instances):
 def test_task_eq(clear_instances, advanced_task):
     task, _, _, _ = advanced_task
     copy_task = Task(id=task.id)
+    other_task = Task()
     assert task == copy_task
+    assert task != other_task
 
 
 def test_task_hash():

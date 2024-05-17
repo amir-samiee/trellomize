@@ -70,7 +70,7 @@ def test_project_reinitialization_with_id(clear_instances, advanced_project):
     proj, _, _, _ = advanced_project
     reloaded_proj = Project(id=proj.id)
     validate_project_properties(reloaded_proj, proj.id, proj.title,
-                       proj.leader, proj.members, proj.tasks)
+                                proj.leader, proj.members, proj.tasks)
 
 
 def test_error_if_intializing_with_invalid_id_without_leader(clear_instances):
@@ -78,10 +78,12 @@ def test_error_if_intializing_with_invalid_id_without_leader(clear_instances):
         Project(id='nonexistent_id')
 
 
-def test_project_eq(clear_instances, advanced_project):
+def test_project_eq(clear_instances, advanced_project, userfactory):
     proj, _, _, _ = advanced_project
-    copy_proj, _, _, _ = advanced_project
+    copy_proj = Project(id=proj.id)
+    other_project = Project('not_equal_to_projs_id', 'title', userfactory())
     assert proj == copy_proj
+    assert proj != other_project
 
 
 def test_project_hash(clear_instances, advanced_project, userfactory):
@@ -104,7 +106,7 @@ def test_project_properties(clear_instances, advanced_project, userfactory):
     new_task = Task()
     proj.tasks = {new_task}
     validate_project_properties(proj, proj.id, "Updated Title",
-                       new_leader, [new_member], [new_task])
+                                new_leader, [new_member], [new_task])
 
 
 def test_project_exists(clear_instances, advanced_project):
