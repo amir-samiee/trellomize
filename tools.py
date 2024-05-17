@@ -3,6 +3,8 @@ from os import system, path
 from typing import Any, Iterable
 from rich.console import Console
 from rich.theme import Theme
+from rich import box
+from rich.table import Table
 from cryptography.fernet import Fernet
 from getpass import getpass
 import re
@@ -212,3 +214,12 @@ def email_is_valid(email: str) -> bool:
 
 def id_is_valid(id: str) -> bool:
     return id and " " not in id and "\t" not in id
+
+
+def merge_tables(*args: Table) -> Table:
+    table = Table(show_header=False, show_edge=False,
+                  box=box.HORIZONTALS,)
+    for _ in range(len(args)):
+        table.add_column()
+    table.add_row(*args)
+    return table

@@ -110,23 +110,18 @@ class Menu:
             else:
                 project.add_member(member)
                 print(f"{username} successfully added!", style="success")
+        save()
+        print("Project save!", style="success")
         input("press enter to go to the project: ")
         Menu.display_project(project, True)
 
     @staticmethod
     def display_project(project: Project, leading: bool):
         clear_screen()
-        print("TITLE: ", style="cyan")
-        print("\t", project.title, style="green")
-        print("ID: ", style="cyan")
-        print("\t", project.id, style="green")
-        print("LEADER: ", style="cyan")
-        print("\t", project.leader, style="green")
-        print("MEMBERS: ", style="cyan")
-        print("\t", *project.members, style="green")
-        print("TASKS: ", style="cyan")
-        for task in project.tasks:
-            print("\t[green]" + task.name+"\t[color(37)]" + task.description)
+        tasks_table = project.tasks_table()
+        info_table = project.info_table()
+        table = merge_tables(tasks_table, info_table)
+        print(table)
         input()
 
     @staticmethod

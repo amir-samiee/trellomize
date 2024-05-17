@@ -1,15 +1,21 @@
 import uuid
 from datetime import datetime, timedelta
-# from multipledispatch import dispatch
+from itertools import zip_longest
 from enum import Enum
 from tools import *
 
 
 class Priority(Enum):
-    CRITICAL = 1
-    HIGH = 2
-    MEDIUM = 3
-    LOW = 4
+    CRITICAL = 4
+    HIGH = 3
+    MEDIUM = 2
+    LOW = 1
+
+    def __gt__(self, other):
+        return self.value > other.value
+
+    def __ge__(self, other):
+        return self.value >= other.value
 
 
 PRIORITY_DICT = {x.name: x for x in Priority}
@@ -206,6 +212,9 @@ class Task:
 
     def __hash__(self):
         return hash(self.id)
+
+    def __repr__(self):
+        return "<task object: "+self.name+">"
 
     # @classmethod
     # def struct(cls, id, raw_dict):
@@ -429,6 +438,58 @@ class Project:
     @tasks.setter
     def tasks(self, new_tasks):
         Project.instances[self.id]['tasks'] = [x.id for x in new_tasks]
+
+    def partitioned(self) -> dict:
+        partition = {x: [] for x in Status}
+        for task in self.tasks:
+            partition[task.status].append(task)
+        for key in partition.keys():
+            partition[key].sort(key=lambda x: x.priority, reverse=True)
+        return partition
+
+    def tasks_table(self) -> Table:
+        table = Table(
+            # box=box.ROUNDED,
+            box=box.HORIZONTALS,
+            row_styles=["none", "dim"],
+        )
+        headers = sorted(list(Status), key=lambda x: x.value)
+        colors = ["green", "blue", "yellow", "purple", "color(214)"]
+        for i in range(5):
+            color = colors[i]
+            header = f"[bold {color}]" + headers[i].name + "[/]"
+            table.add_column(header, style=color, overflow="fold")
+        partition = self.partitioned()
+        columns = [partition[header] for header in headers]
+        for items in zip_longest(*columns):
+            items = [x.name if isinstance(x, Task) else "" for x in items]
+            table.add_row(*items)
+        return table
+
+    def info_table(self) -> Table:
+        table1 = Table(
+            show_header=False,
+            box=box.SIMPLE,
+        )
+        table1.add_column(style="red")
+        table1.add_column(style="blue", overflow="fold")
+        table1.add_row("TITLE:", self.title)
+        table1.add_row("ID:", self.id)
+        table1.add_row("LEADER:", self.leader.username)
+        table2 = Table(
+            show_header=False,
+            box=box.SIMPLE,
+            row_styles=["none", "dim"],
+        )
+        table2.add_column(style="red")
+        table2.add_column(style="blue", overflow="fold")
+        members = [x.username for x in self.members]
+        members.sort()
+        for items in zip_longest(["MEMBERS:"], members):
+            items = [str(x) if x != None else "" for x in items]
+            table2.add_row(*items)
+        # table2.add_row("MEMBERS:", members)
+        return merge_tables(table1, table2)
 
     def exists(project: (Project | str)) -> bool:
         if type(project) == str:
