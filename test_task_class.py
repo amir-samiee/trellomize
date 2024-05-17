@@ -42,17 +42,12 @@ def clear_instances():
 
 
 @pytest.fixture
-def empty_task():
-    return Task(name="Task Name", description="Task Description")
-
-
-@pytest.fixture
-def task_with_members():
+def advanced_task():
     user1 = User(username="user1", name="User One",
                  email="user1@example.com", password="password")
     task = Task(name="New Task", description="New Description",
                 priority=Priority.MEDIUM, status=Status.TODO, members={user1})
-    return task, user1
+    return task, user1, task.start_time, task.end_time
 
 
 @pytest.fixture
@@ -63,24 +58,25 @@ def userfactory():
     return user
 
 
-def test_task_initialization_with_parameters(clear_instances, task_with_members):
-    task, user1 = task_with_members
+def validate_task_properties(task, name, description, priority,
+                             status, members, start_time, end_time):
     assert task.id in Task.instances
 
-    assert Task.instances[task.id]['name'] == "New Task"
-    assert task.name == "New Task"
+    assert Task.instances[task.id]['name'] == name
+    assert task.name == name
 
-    assert Task.instances[task.id]['description'] == "New Description"
-    assert task.description == "New Description"
+    assert Task.instances[task.id]['description'] == description
+    assert task.description == description
 
-    assert Task.instances[task.id]['priority'] == "MEDIUM"
-    assert task.priority == Priority.MEDIUM
+    assert Task.instances[task.id]['priority'] == priority.name
+    assert task.priority == priority
 
-    assert Task.instances[task.id]['status'] == "TODO"
-    assert task.status == Status.TODO
+    assert Task.instances[task.id]['status'] == status.name
+    assert task.status == status
 
-    assert Task.instances[task.id]['members'] == [user1.username]
-    assert task.members == {user1}
+    assert Task.instances[task.id]['members'] == [
+        member.username for member in members]
+    assert task.members == set(members)
 
     assert Task.instances[task.id]['history'] == []
     assert task.history == []
@@ -88,23 +84,27 @@ def test_task_initialization_with_parameters(clear_instances, task_with_members)
     assert Task.instances[task.id]['comments'] == []
     assert task.comments == []
 
-    assert isinstance(task.start_time, datetime)
-    assert isinstance(task.end_time, datetime)
+    assert task.start_time == start_time
+    assert task.end_time == end_time
 
 
-def test_task_reintialization_with_id(clear_instances, task_with_members):
-    task, _ = task_with_members
+def test_task_initialization_with_default_parameters(clear_instances):
+    task = Task()
+    validate_task_properties(task, '', '', Priority.LOW, Status.BACKLOG,
+                             [], task.start_time, task.end_time)
+
+
+def test_task_initialization_with_custom_parameters(clear_instances, advanced_task):
+    task, user1, st, ed = advanced_task
+    validate_task_properties(task, 'New Task', 'New Description',
+                             Priority.MEDIUM, Status.TODO, [user1], st, ed)
+
+
+def test_task_reintialization_with_id(clear_instances, advanced_task):
+    task, _, _, _ = advanced_task
     reloaded_task = Task(id=task.id)
-    assert task.id == reloaded_task.id
-    assert task.name == reloaded_task.name
-    assert task.description == reloaded_task.description
-    assert task.priority == reloaded_task.priority
-    assert task.status == reloaded_task.status
-    assert task.members == reloaded_task.members
-    assert task.history == reloaded_task.history
-    assert task.comments == reloaded_task.comments
-    assert task.start_time == reloaded_task.start_time
-    assert task.end_time == reloaded_task.end_time
+    validate_task_properties(reloaded_task, task.name, task.description, task.priority,
+                             task.status, task.members, task.start_time, task.end_time)
 
 
 def test_error_if_intializing_with_invalid_id(clear_instances):
@@ -112,8 +112,8 @@ def test_error_if_intializing_with_invalid_id(clear_instances):
         Task(id='nonexistent_id')
 
 
-def test_task_eq(clear_instances, task_with_members):
-    task, _ = task_with_members
+def test_task_eq(clear_instances, advanced_task):
+    task, _, _, _ = advanced_task
     copy_task = Task(id=task.id)
     assert task == copy_task
 
@@ -127,35 +127,22 @@ def test_task_hash():
     assert hash(task1) != hash(task3)
 
 
-def test_task_properties(clear_instances, task_with_members, userfactory):
-    task , _ = task_with_members
+def test_task_properties(clear_instances, advanced_task, userfactory):
+    task, _, _, _ = advanced_task
     task.name = "Updated Task Name"
-    assert task.name == "Updated Task Name"
-
     task.description = "Updated Description"
-    assert task.description == "Updated Description"
-
-    new_start_time = datetime.now() + timedelta(days=1)
-    task.start_time = new_start_time
-    assert task.start_time == new_start_time
-
-    new_end_time = datetime.now() + timedelta(days=2)
-    task.end_time = new_end_time
-    assert task.end_time == new_end_time
-
+    task.start_time = new_start_time = datetime.now() + timedelta(days=1)
+    task.end_time = new_end_time = datetime.now() + timedelta(days=2)
     task.priority = Priority.HIGH
-    assert task.priority == Priority.HIGH
-
     task.status = Status.DONE
-    assert task.status == Status.DONE
-
-    user = userfactory() 
+    user = userfactory()
     task.members = {user}
-    assert task.members == {user}
+    validate_task_properties(task, "Updated Task Name", "Updated Description", Priority.HIGH,
+                             Status.DONE, {user}, new_start_time, new_end_time)
 
 
-def test_task_exists(clear_instances, empty_task):
-    task = empty_task
+def test_task_exists(clear_instances, basic_task):
+    task = basic_task
     assert Task.exists(task.id)
     assert Task.exists(task)
     assert not Task.exists("nonexistent_id")
@@ -174,15 +161,15 @@ def test_dump_task_to_file(mock_save_data, clear_instances):
     mock_save_data.assert_called_once_with(sample_tasks, TASKS_FILE_PATH)
 
 
-def test_task_has_member(clear_instances, empty_task, task_with_members, userfactory):
-    task = empty_task
+def test_task_has_member(clear_instances, basic_task, advanced_task, userfactory):
+    task = basic_task
     assert not task.has_member(userfactory())
-    task , user1 = task_with_members
+    task, user1 = advanced_task
     assert task.has_member(user1)
 
 
-def test_task_add_member(clear_instances, empty_task, userfactory):
-    task = empty_task
+def test_task_add_member(clear_instances, basic_task, userfactory):
+    task = basic_task
     user1 = userfactory()
     task.add_member(user1)
     assert user1 in task.members
@@ -190,8 +177,8 @@ def test_task_add_member(clear_instances, empty_task, userfactory):
         task.add_member(user1)
 
 
-def test_task_remove_member(clear_instances, task_with_members):
-    task, user1 = task_with_members
+def test_task_remove_member(clear_instances, advanced_task):
+    task, user1 = advanced_task
     task.remove_member(user1)
     assert user1 not in task.members
     with pytest.raises(ValueError):
