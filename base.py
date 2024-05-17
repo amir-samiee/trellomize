@@ -540,6 +540,9 @@ class Project:
         # Remove task from the project:
         self.tasks -= {task}
 
+        # Remove task from task instances:
+        del Task.instances[task.id]
+
         if is_viewed:
             print(f"Task '{task.name}' removed from project",
                   f"'{self.title}'", style='success', sep=' ')

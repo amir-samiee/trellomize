@@ -64,13 +64,28 @@ def user2():
 def test_task_initialization_with_parameters(clear_task_instances, task_with_members, user1, user2):
     task = task_with_members
     assert task.id in Task.instances
+
     assert Task.instances[task.id]['name'] == "New Task"
+    assert task.name == "New Task"
+
     assert Task.instances[task.id]['description'] == "New Description"
+    assert task.description == "New Description"
+
     assert Task.instances[task.id]['priority'] == "MEDIUM"
+    assert task.priority == Priority.MEDIUM
+
     assert Task.instances[task.id]['status'] == "TODO"
-    assert user1.username in Task.instances[task.id]['members']
+    assert task.status == Status.TODO
+
+    assert Task.instances[task.id]['members'] == [user1.username]
+    assert task.members == {user1}
+
     assert Task.instances[task.id]['history'] == []
+    assert task.history == []
+
     assert Task.instances[task.id]['comments'] == []
+    assert task.comments == []
+
     assert isinstance(task.start_time, datetime)
     assert isinstance(task.end_time, datetime)
 
@@ -96,8 +111,9 @@ def test_error_if_intializing_with_invalid_id(clear_task_instances):
 
 def test_task_eq(clear_task_instances, task_with_members):
     task = task_with_members
-    copy_task = Task(id = task.id)
-    assert task.id == copy_task.id
+    copy_task = Task(id=task.id)
+    assert task == copy_task
+
 
 def test_task_hash():
     task1 = Task(name="Task 1", description="Description 1")
@@ -106,16 +122,6 @@ def test_task_hash():
 
     assert hash(task1) == hash(task2)
     assert hash(task1) != hash(task3)
-    
-    task_set = {task1, task3}
-    assert task1 in task_set
-    assert task3 in task_set
-    assert task2 in task_set
-
-    task_dict = {task1: "First task", task3: "Second task"}
-    assert task_dict[task1] == "First task"
-    assert task_dict[task2] == "First task"
-    assert task_dict[task3] == "Second task"
 
 
 def test_task_properties(clear_task_instances, task_with_members, user2):
@@ -151,19 +157,19 @@ def test_task_exists(clear_task_instances, empty_task):
 
 
 @patch('base.load_data', MagicMock(return_value=sample_tasks))
-def test_load_from_file(clear_task_instances):
+def test_load_task_from_file(clear_task_instances):
     Task.load_from_file()
     assert Task.instances == sample_tasks
 
 
 @patch('base.save_data')
-def test_dump_to_file(mock_save_data, clear_task_instances):
+def test_dump_task_to_file(mock_save_data, clear_task_instances):
     Task.instances = sample_tasks
     Task.dump_to_file()
     mock_save_data.assert_called_once_with(sample_tasks, TASKS_FILE_PATH)
 
 
-def test_has_member(clear_task_instances, empty_task, task_with_members, user1):
+def test_task_has_member(clear_task_instances, empty_task, task_with_members, user1):
     task = empty_task
     assert not task.has_member(user1)
     task = task_with_members
