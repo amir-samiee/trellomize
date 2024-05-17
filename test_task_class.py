@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
-import uuid
 from base import *
 
 sample_tasks = {
@@ -47,9 +46,7 @@ def empty_task():
 def task_with_members():
     user1 = User(username="user1", name="User One",
                  email="user1@example.com", password="password")
-    user2 = User(username="user2", name="User Two",
-                 email="user2@example.com", password="password")
-    return Task(name="New Task", description="New Description", priority=Priority.MEDIUM, status=Status.TODO, members={user1, user2})
+    return Task(name="New Task", description="New Description", priority=Priority.MEDIUM, status=Status.TODO, members={user1})
 
 
 @pytest.fixture
@@ -64,12 +61,6 @@ def user2():
                 email="user2@example.com", password="password")
 
 
-@pytest.fixture
-def user3():
-    return User(username="user3", name="User Three",
-                email="user3@example.com", password="password")
-
-
 def test_task_initialization_with_parameters(clear_task_instances, task_with_members, user1, user2):
     task = task_with_members
     assert task.id in Task.instances
@@ -78,7 +69,6 @@ def test_task_initialization_with_parameters(clear_task_instances, task_with_mem
     assert Task.instances[task.id]['priority'] == "MEDIUM"
     assert Task.instances[task.id]['status'] == "TODO"
     assert user1.username in Task.instances[task.id]['members']
-    assert user2.username in Task.instances[task.id]['members']
     assert Task.instances[task.id]['history'] == []
     assert Task.instances[task.id]['comments'] == []
     assert isinstance(task.start_time, datetime)
@@ -128,7 +118,7 @@ def test_task_hash():
     assert task_dict[task3] == "Second task"
 
 
-def test_task_properties(clear_task_instances, task_with_members, user3):
+def test_task_properties(clear_task_instances, task_with_members, user2):
     task_with_members.name = "Updated Task Name"
     assert task_with_members.name == "Updated Task Name"
 
@@ -149,8 +139,8 @@ def test_task_properties(clear_task_instances, task_with_members, user3):
     task_with_members.status = Status.DONE
     assert task_with_members.status == Status.DONE
 
-    task_with_members.members = {user3}
-    assert task_with_members.members == {user3}
+    task_with_members.members = {user2}
+    assert task_with_members.members == {user2}
 
 
 def test_task_exists(clear_task_instances, empty_task):

@@ -346,8 +346,8 @@ class Task:
         members.remove(user)
         self.members = members
         if is_viewed:
-            print(f"User '{user.username}' removed from task '{
-                  self.name}'", style='success')
+            print(f"User '{user.username}' removed from task",
+                  f"'{self.name}'", style='success', sep=' ')
 
 
 class Project:
