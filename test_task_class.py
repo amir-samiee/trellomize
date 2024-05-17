@@ -30,11 +30,15 @@ sample_tasks = {
 
 
 @pytest.fixture
-def clear_task_instances():
-    """Fixture to clear Task.instances before and after each test"""
+def clear_instances():
+    """Fixture to clear instances before and after each test"""
+    Project.instances.clear()
+    User.instances.clear()
     Task.instances.clear()
     yield
+    User.instances.clear()
     Task.instances.clear()
+    Project.instances.clear()
 
 
 @pytest.fixture
@@ -46,23 +50,21 @@ def empty_task():
 def task_with_members():
     user1 = User(username="user1", name="User One",
                  email="user1@example.com", password="password")
-    return Task(name="New Task", description="New Description", priority=Priority.MEDIUM, status=Status.TODO, members={user1})
+    task = Task(name="New Task", description="New Description",
+                priority=Priority.MEDIUM, status=Status.TODO, members={user1})
+    return task, user1
 
 
 @pytest.fixture
-def user1():
-    return User(username="user1", name="User One",
-                email="user1@example.com", password="password")
+def userfactory():
+    def user():
+        return User(username=f"user_{uuid.uuid4()}", name="User",
+                    email="member@example.com", password="password")
+    return user
 
 
-@pytest.fixture
-def user2():
-    return User(username="user2", name="User Two",
-                email="user2@example.com", password="password")
-
-
-def test_task_initialization_with_parameters(clear_task_instances, task_with_members, user1, user2):
-    task = task_with_members
+def test_task_initialization_with_parameters(clear_instances, task_with_members):
+    task, user1 = task_with_members
     assert task.id in Task.instances
 
     assert Task.instances[task.id]['name'] == "New Task"
@@ -90,27 +92,28 @@ def test_task_initialization_with_parameters(clear_task_instances, task_with_mem
     assert isinstance(task.end_time, datetime)
 
 
-def test_task_reintialization_with_id(clear_task_instances, task_with_members):
-    reloaded_task = Task(id=task_with_members.id)
-    assert task_with_members.id == reloaded_task.id
-    assert task_with_members.name == reloaded_task.name
-    assert task_with_members.description == reloaded_task.description
-    assert task_with_members.priority == reloaded_task.priority
-    assert task_with_members.status == reloaded_task.status
-    assert task_with_members.members == reloaded_task.members
-    assert task_with_members.history == reloaded_task.history
-    assert task_with_members.comments == reloaded_task.comments
-    assert task_with_members.start_time == reloaded_task.start_time
-    assert task_with_members.end_time == reloaded_task.end_time
+def test_task_reintialization_with_id(clear_instances, task_with_members):
+    task, _ = task_with_members
+    reloaded_task = Task(id=task.id)
+    assert task.id == reloaded_task.id
+    assert task.name == reloaded_task.name
+    assert task.description == reloaded_task.description
+    assert task.priority == reloaded_task.priority
+    assert task.status == reloaded_task.status
+    assert task.members == reloaded_task.members
+    assert task.history == reloaded_task.history
+    assert task.comments == reloaded_task.comments
+    assert task.start_time == reloaded_task.start_time
+    assert task.end_time == reloaded_task.end_time
 
 
-def test_error_if_intializing_with_invalid_id(clear_task_instances):
+def test_error_if_intializing_with_invalid_id(clear_instances):
     with pytest.raises(ValueError):
         Task(id='nonexistent_id')
 
 
-def test_task_eq(clear_task_instances, task_with_members):
-    task = task_with_members
+def test_task_eq(clear_instances, task_with_members):
+    task, _ = task_with_members
     copy_task = Task(id=task.id)
     assert task == copy_task
 
@@ -124,32 +127,34 @@ def test_task_hash():
     assert hash(task1) != hash(task3)
 
 
-def test_task_properties(clear_task_instances, task_with_members, user2):
-    task_with_members.name = "Updated Task Name"
-    assert task_with_members.name == "Updated Task Name"
+def test_task_properties(clear_instances, task_with_members, userfactory):
+    task , _ = task_with_members
+    task.name = "Updated Task Name"
+    assert task.name == "Updated Task Name"
 
-    task_with_members.description = "Updated Description"
-    assert task_with_members.description == "Updated Description"
+    task.description = "Updated Description"
+    assert task.description == "Updated Description"
 
     new_start_time = datetime.now() + timedelta(days=1)
-    task_with_members.start_time = new_start_time
-    assert task_with_members.start_time == new_start_time
+    task.start_time = new_start_time
+    assert task.start_time == new_start_time
 
     new_end_time = datetime.now() + timedelta(days=2)
-    task_with_members.end_time = new_end_time
-    assert task_with_members.end_time == new_end_time
+    task.end_time = new_end_time
+    assert task.end_time == new_end_time
 
-    task_with_members.priority = Priority.HIGH
-    assert task_with_members.priority == Priority.HIGH
+    task.priority = Priority.HIGH
+    assert task.priority == Priority.HIGH
 
-    task_with_members.status = Status.DONE
-    assert task_with_members.status == Status.DONE
+    task.status = Status.DONE
+    assert task.status == Status.DONE
 
-    task_with_members.members = {user2}
-    assert task_with_members.members == {user2}
+    user = userfactory() 
+    task.members = {user}
+    assert task.members == {user}
 
 
-def test_task_exists(clear_task_instances, empty_task):
+def test_task_exists(clear_instances, empty_task):
     task = empty_task
     assert Task.exists(task.id)
     assert Task.exists(task)
@@ -157,35 +162,36 @@ def test_task_exists(clear_task_instances, empty_task):
 
 
 @patch('base.load_data', MagicMock(return_value=sample_tasks))
-def test_load_task_from_file(clear_task_instances):
+def test_load_task_from_file(clear_instances):
     Task.load_from_file()
     assert Task.instances == sample_tasks
 
 
 @patch('base.save_data')
-def test_dump_task_to_file(mock_save_data, clear_task_instances):
+def test_dump_task_to_file(mock_save_data, clear_instances):
     Task.instances = sample_tasks
     Task.dump_to_file()
     mock_save_data.assert_called_once_with(sample_tasks, TASKS_FILE_PATH)
 
 
-def test_task_has_member(clear_task_instances, empty_task, task_with_members, user1):
+def test_task_has_member(clear_instances, empty_task, task_with_members, userfactory):
     task = empty_task
-    assert not task.has_member(user1)
-    task = task_with_members
+    assert not task.has_member(userfactory())
+    task , user1 = task_with_members
     assert task.has_member(user1)
 
 
-def test_task_add_member(clear_task_instances, empty_task, user1):
+def test_task_add_member(clear_instances, empty_task, userfactory):
     task = empty_task
+    user1 = userfactory()
     task.add_member(user1)
     assert user1 in task.members
     with pytest.raises(ValueError):
         task.add_member(user1)
 
 
-def test_task_remove_member(clear_task_instances, task_with_members, user1):
-    task = task_with_members
+def test_task_remove_member(clear_instances, task_with_members):
+    task, user1 = task_with_members
     task.remove_member(user1)
     assert user1 not in task.members
     with pytest.raises(ValueError):
