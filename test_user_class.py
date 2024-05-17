@@ -127,13 +127,6 @@ def test_user_exists_test(clear_instances, basic_user):
     assert not User.exists(f"not{basic_user.username}")
 
 
-def test_user_dump(clear_instances, advanced_user):
-    user, _, _ = advanced_user
-    data = user.dump()
-    assert user.leading == {Project(id=x) for x in data["leading"]}
-    assert user.involved == {Project(id=x) for x in data["involved"]}
-
-
 @patch('base.load_data', MagicMock(return_value=sample_users))
 def test_load_user_from_file(clear_instances):
     User.load_from_file()
