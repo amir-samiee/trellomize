@@ -1,3 +1,6 @@
+from pathlib import Path
+import sys
+sys.path.append(str(Path.cwd()))
 import pytest
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
