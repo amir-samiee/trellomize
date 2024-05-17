@@ -111,7 +111,7 @@ class Menu:
                 project.add_member(member)
                 print(f"{username} successfully added!", style="success")
         save()
-        print("Project save!", style="success")
+        print("Project saved!", style="success")
         input("press enter to go to the project: ")
         Menu.display_project(project, True)
 
@@ -157,14 +157,16 @@ class Menu:
                 pass
             match choice:
                 case 1:
-                    choice = get_input(message + "enter usernname (0 to cancel): ",
-                                       {0} | User.instances.keys() - project.members, operation=op)
+                    included = {0} | User.instances.keys(
+                    ) - {x.username for x in project.members} - {User.current.username}
+                    choice = get_input(
+                        message + "enter usernname (0 to cancel): ", included, operation=op)
                     if choice == "0":
                         continue
                     project.add_member(User(choice))
                 case 2:
                     choice = get_input(
-                        message + "enter username (0 to cancel): ", {0} | project.members, operation=op)
+                        message + "enter username (0 to cancel): ", {0} | {x.username for x in project.members}, operation=op)
                     if choice == "0":
                         continue
                     project.remove_member(User(choice))
@@ -173,24 +175,33 @@ class Menu:
                 case 4:
                     Menu.edit_project(project)
                 case 5:
-                    choice = input(
-                        "are you [warning]SURE[/] you want to remove this project? (y/n): ")
-                    if choice == "y":
+                    print(
+                        "are you [warning]SURE[/] you want to remove this project? (y/n): ", end="")
+                    if input() == "y":
                         project.remove()
                         return
-                    input("removing canceled! press enter to continue: ")
+                    print(
+                        "[warning]removing canceled! press enter to continue: ", end="")
+                    input()
                 case 0:
                     return
                 case _:
                     st, index = choice.split()
                     st = STATUS_DICT[st.upper()]
                     index = int(index) - 1
-                    Menu.display_task(project.partitioned()
-                                      [st][index], leading)
+                    task = project.partitioned()[st][index]
+                    Menu.display_task(
+                        task, leading or task.has_member(User.current))
 
     @staticmethod
-    def display_projects(projects: list, leading: bool):
+    def display_projects(leading: bool):
+        projects = []
         while True:
+            if leading:
+                projects = User.current.leading
+            else:
+                projects = User.current.involved
+            projects = list(projects)
             clear_screen()
             options = f"[title]{
                 ["Involved", "Leading"][leading]} Projects[/]\n"
@@ -212,9 +223,9 @@ class Menu:
                 case 1:
                     Menu.new_project()
                 case 2:
-                    Menu.display_projects(list(User.current.involved), False)
+                    Menu.display_projects(False)
                 case 3:
-                    Menu.display_projects(list(User.current.leading), True)
+                    Menu.display_projects(True)
                 case 0:
                     return
 
