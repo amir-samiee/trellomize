@@ -88,21 +88,6 @@ class User:
     def __hash__(self):
         return hash(self.username)
 
-    # @classmethod
-    # def struct(cls, username: str, raw_dict: dict):
-    #     data = {
-    #         "name": "",
-    #         "email": "",
-    #         "password": None,
-    #         "is_active": True,
-    #         "involved": [],
-    #         "leading": []
-    #     }
-    #     for key in data.keys():
-    #         if key in raw_dict.keys():
-    #             data[key] = raw_dict[key]
-    #     User.instances[username] = data
-
     @classmethod
     def load_from_file(cls):
         User.instances = handeled_load_data(USERS_FILE_PATH)
@@ -169,11 +154,6 @@ class User:
         raise ValueError(f'wrong type of argument({type(user)})')
 
 
-# class Comment:
-#     def __init__(self,user: User,) -> None:
-#         pass
-
-
 class Task:
     instances = dict()
 
@@ -209,24 +189,6 @@ class Task:
 
     def __repr__(self):
         return "<task object: "+self.name+">"
-
-    # @classmethod
-    # def struct(cls, id, raw_dict):
-    #     data = {
-    #         "name": "",
-    #         "description": "",
-    #         "start_time": str(datetime.now()),
-    #         "end_time":  str(datetime.now() + timedelta(days=1)),
-    #         "members": [],
-    #         "priority":  Priority.LOW.name,
-    #         "status": Status.BACKLOG.name,
-    #         "history": [],
-    #         "comments": []
-    #     }
-    #     for key in data.keys():
-    #         if key in raw_dict.keys():
-    #             data[key] = raw_dict[key]
-    #     Task.instances[id] = data
 
     @classmethod
     def load_from_file(cls):
@@ -378,19 +340,6 @@ class Project:
 
     def __hash__(self):
         return hash(self.id)
-
-    # @classmethod
-    # def struct(cls, id, raw_dict):
-    #     data = {
-    #         "title": "",
-    #         "leader": "",
-    #         "members": [],
-    #         "tasks": []
-    #     }
-    #     for key in data.keys():
-    #         if key in raw_dict.keys():
-    #             data[key] = raw_dict[key]
-    #     Project.instances[id] = data
 
     @classmethod
     def load_from_file(cls):
