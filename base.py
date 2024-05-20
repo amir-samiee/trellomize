@@ -193,6 +193,8 @@ class Task:
         Task.instances[id] = dict()
         self.name = name
         self.description = description
+        # self.start_time = start_time.strftime(TIME_FORMAT)
+        # self.end_time = end_time.strftime(TIME_FORMAT)
         self.start_time = start_time
         self.end_time = end_time
         self.members = members
@@ -200,6 +202,55 @@ class Task:
         self.status = status
         self.history = history
         self.comments = comments
+
+    def info_table(self) -> Table:
+        table = Table(
+            show_header=False,
+            # row_styles=["none", "dim"],
+            box=box.SIMPLE,
+        )
+        table.add_column(style="cyan")
+        table.add_column(style="red")
+        table.add_column(style="blue", overflow="fold")
+        table.add_row("1.", "NAME:", self.name)
+        table.add_row("2.", "DESCRIPTION:", self.description)
+        table.add_row("3.", "START TIME:",
+                      self.start_time.strftime(TIME_FORMAT))
+        table.add_row("4.", "END TIME:", self.end_time.strftime(TIME_FORMAT))
+        # members = Table(show_header=False, box=box.SIMPLE,
+        #                 style=["dim", "none"])
+        # members.add_column(style="blue")
+        # for member in self.members:
+        #     members.add_row(member.username)
+        members = ""
+        mod = 1
+        for member in self.members:
+            members += f"[blue{" none" if mod else ""}]" + \
+                member.username + "\n"
+            mod = 1 - mod
+        members = members[:-1]
+        table.add_row("5.", "MEMBERS:", members)
+        table.add_row("6.", "PRIORITY:", self.priority.name)
+        table.add_row("7.", "STATUS:", self.status.name)
+        table.add_row("8.", "HISTORY", None)
+        table.add_row("9.", "COMMENTS", None)
+        table.add_row("10.", "DELETE TASK", None)
+        table.add_row("0.", "BACK", None)
+        return table
+        # table2 = Table(
+        #     show_header=False,
+        #     box=box.SIMPLE,
+        #     row_styles=["none", "dim"],
+        # )
+        # table2.add_column(style="red")
+        # table2.add_column(style="blue", overflow="fold")
+        # members = [x.username for x in self.members]
+        # members.sort()
+        # for items in zip_longest(["MEMBERS:"], members):
+        #     items = [str(x) if x != None else "" for x in items]
+        #     table2.add_row(*items)
+        # table2.add_row("MEMBERS:", members)
+        # return merged_tables(table, table2)
 
     def __eq__(self, other: Task):
         return isinstance(other, Task) and self.id == other.id
@@ -254,21 +305,32 @@ class Task:
 
     @property
     def start_time(self):
-        return datetime.strptime(
-            Task.instances[self.id]["start_time"], "%Y-%m-%d %H:%M:%S.%f")
+        if "start_time" in Task.instances[self.id].keys():
+            return datetime.strptime(
+                Task.instances[self.id]["start_time"], TIME_FORMAT)
+        return None
 
     @start_time.setter
-    def start_time(self, new_start_time):
-        Task.instances[self.id]['start_time'] = str(new_start_time)
+    def start_time(self, new_start_time: datetime):
+        if self.end_time and new_start_time > self.end_time:
+            raise ValueError("you can't set the start time after the end time")
+        Task.instances[self.id]['start_time'] = new_start_time.strftime(
+            TIME_FORMAT)
 
     @property
     def end_time(self):
-        return datetime.strptime(
-            Task.instances[self.id]["end_time"], "%Y-%m-%d %H:%M:%S.%f")
+        if "end_time" in Task.instances[self.id].keys():
+            return datetime.strptime(
+                Task.instances[self.id]["end_time"], TIME_FORMAT)
+        return None
 
     @end_time.setter
-    def end_time(self, new_end_time):
-        Task.instances[self.id]['end_time'] = str(new_end_time)
+    def end_time(self, new_end_time: datetime):
+        if self.start_time and new_end_time < self.start_time:
+            raise ValueError(
+                "you can't set the end time before the start time")
+        Task.instances[self.id]['end_time'] = new_end_time.strftime(
+            TIME_FORMAT)
 
     @property
     def members(self):

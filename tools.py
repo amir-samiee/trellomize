@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from os import system, path
 from typing import Any, Iterable
@@ -29,6 +30,8 @@ theme = Theme({
 })
 console = Console(theme=theme)
 print = console.print
+
+TIME_FORMAT = "%Y-%m-%d %H:%M"
 
 # file paths
 KEY_FILE_PATH = "Data/secret.key"
@@ -228,6 +231,15 @@ def email_is_valid(email: str) -> bool:
 
 def id_is_valid(id: str) -> bool:
     return id and " " not in id and "\t" not in id
+
+
+def date_time_is_valid(date_time: str) -> bool:
+    try:
+        datetime.strptime(date_time, TIME_FORMAT)
+    except:
+        return False
+    else:
+        return True
 
 
 def merged_tables(*args: Table) -> Table:

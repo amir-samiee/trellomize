@@ -121,13 +121,32 @@ class Menu:
 
     @staticmethod
     def display_task(task: Task, leading: bool):
-        print(task.id)
-        print(task.name)
+        clear_screen()
+        print("Task", style="title")
+        print(task.info_table())
         input()
 
     @staticmethod
     def add_task(project):
-        pass
+        clear_screen()
+        print("Add Task:", style="title")
+        print("In this section you can add a new task to the current project")
+        print("Enter 0 to cancel the process anytime")
+        print("You can change the entered data later")
+        name = get_input("enter task's name: ")
+        if name == "0":
+            return
+        print("enter a description for your task (this section can remain empty, enter twice to finish the description):")
+        description = str()
+        while description[-2:] != "\n\n":
+            description += input() + "\n"
+        description = description[:-2]
+        start_time = get_input(f"enter start time with this format <year>-<month>-<day> <hour>:<minute>\texample:{
+                               datetime.now().strftime(TIME_FORMAT)}\n or simply enter to set it to current: ", limiting_function=lambda x: date_time_is_valid(x) or x in ["", "0"])
+        if start_time == "0":
+            return
+        elif start_time == "":
+            start_time = datetime.now()
 
     @staticmethod
     def edit_project(project):
