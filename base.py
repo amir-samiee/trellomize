@@ -105,7 +105,7 @@ class User:
 
     @classmethod
     def load_from_file(cls):
-        User.instances = load_data(USERS_FILE_PATH)
+        User.instances = handeled_load_data(USERS_FILE_PATH)
 
     @classmethod
     def dump_to_file(cls):
@@ -230,7 +230,7 @@ class Task:
 
     @classmethod
     def load_from_file(cls):
-        Task.instances = load_data(TASKS_FILE_PATH)
+        Task.instances = handeled_load_data(TASKS_FILE_PATH)
 
     @classmethod
     def dump_to_file(cls):
@@ -394,7 +394,7 @@ class Project:
 
     @classmethod
     def load_from_file(cls):
-        Project.instances = load_data(PROJECTS_FILE_PATH)
+        Project.instances = handeled_load_data(PROJECTS_FILE_PATH)
 
     @classmethod
     def dump_to_file(cls):

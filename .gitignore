@@ -4,3 +4,4 @@ projectEnv
 tester*
 Trellomize.pdf
 *.json
+*.log

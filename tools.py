@@ -9,6 +9,17 @@ from rich.table import Table
 from cryptography.fernet import Fernet
 from getpass import getpass
 import re
+from loguru import logger
+
+log_format = "{time:YYYY-MM-DD HH:mm:ss}|{level}  |{extra[user]}  |{message}"
+logger.configure(
+    handlers=[{"sink": 'user-activity.log', "format": log_format}])
+
+
+def log_user_activity(user, level, message):
+    bound_logger = logger.bind(user=user)
+    bound_logger.log(level, message)
+
 
 theme = Theme({
     "error": "bold red",
@@ -89,7 +100,7 @@ def get_input(message: str, included: Iterable = [], excluded: Iterable = [], cl
             return return_type(choice)
 
 
-# Writes data into given json file:
+# Writes data into given file:
 def save_data(data: Any, saving_file: str) -> None:
     with open(saving_file, "w") as data_file:
         if saving_file.endswith(".json"):
