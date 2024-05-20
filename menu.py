@@ -102,7 +102,7 @@ class Menu:
         options += id + "\nenter usernames to add to project, seperated by spaces: "
         members = set(get_input(options).split()) - {User.current.username}
         project = Project(id, title, User.current)
-        log_user_activity(User.__current, 'INFO', f"Created project '{project.id}'")
+        log_user_activity(User.current, 'INFO', f"Created project '{project.id}'")
         for username in members:
             member = None
             try:
@@ -112,7 +112,7 @@ class Menu:
                       username}[/]: [error]user doesn't exist[/]")
             else:
                 project.add_member(member)
-                log_user_activity(User.__current, 'INFO', f"Added user '{member.username}' to project '{project.id}'")
+                log_user_activity(User.current, 'INFO', f"Added user '{member.username}' to project '{project.id}'")
                 print(f"{username} successfully added!", style="success")
         save()
         print("Project saved!", style="success")
@@ -168,14 +168,14 @@ class Menu:
                     if choice == "0":
                         continue
                     project.add_member(User(choice))
-                    log_user_activity(User.__current, 'INFO', f"Added user '{choice}' to project '{project.id}'")
+                    log_user_activity(User.current, 'INFO', f"Added user '{choice}' to project '{project.id}'")
                 case 2:
                     choice = get_input(
                         message + "enter username (0 to cancel): ", {0} | {x.username for x in project.members}, operation=op)
                     if choice == "0":
                         continue
                     project.remove_member(User(choice))
-                    log_user_activity(User.__current, 'INFO', f"Removed user '{choice}' from project '{project.id}'")
+                    log_user_activity(User.current, 'INFO', f"Removed user '{choice}' from project '{project.id}'")
                 case 3:
                     Menu.add_task(project)
                 case 4:
@@ -185,7 +185,7 @@ class Menu:
                         "are you [warning]SURE[/] you want to remove this project? (y/n): ", end="")
                     if input() == "y":
                         project.remove()
-                        log_user_activity(User.__current, 'INFO', f"Removed project '{project.id}'")
+                        log_user_activity(User.current, 'INFO', f"Removed project '{project.id}'")
                         return
                     print(
                         "[warning]removing canceled! press enter to continue: ", end="")
