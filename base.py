@@ -82,7 +82,7 @@ class User:
     def __hash__(self):
         return hash(self.username)
 
-    def __repr__(self):
+    def __str__(self):
         return self.username
 
     def __hash__(self):
@@ -160,10 +160,8 @@ class Event:
         self.content = content
         self.time = time
 
-    
     def dump(self):
         return [self.user.username, self.content, self.time.strftime(TIME_FORMAT)]
-    
 
 
 Comment = Event
@@ -454,6 +452,13 @@ class Project:
     def tasks(self, new_tasks):
         Project.instances[self.id]['tasks'] = [x.id for x in new_tasks]
 
+    def change_id(self, new_id: str):
+        if new_id in Project.instances.keys():
+            raise ValueError("id is already in use")
+        Project.instances[new_id] = Project.instances[self.id]
+        Project.instances.pop(self.id)
+        self.id = new_id
+
     def partitioned(self) -> dict:
         partition = {x: [] for x in Status}
         for task in self.tasks:
@@ -508,7 +513,33 @@ class Project:
         for items in zip_longest(["MEMBERS:"], members):
             items = [str(x) if x != None else "" for x in items]
             table2.add_row(*items)
-        # table2.add_row("MEMBERS:", members)
+        return merged_tables(table1, table2)
+
+    def info_table_numbered(self) -> Table:
+        table1 = Table(
+            show_header=False,
+            # row_styles=["none", "dim"],
+            box=box.SIMPLE,
+        )
+        table1.add_column(style="cyan")
+        table1.add_column(style="red")
+        table1.add_column(style="blue", overflow="fold")
+        table1.add_row("1.", "TITLE:", self.title)
+        table1.add_row("2.", "ID:", Text(self.id, style="dim blue"))
+        table1.add_row("3.", "LEADER:", self.leader.username)
+        table2 = Table(
+            show_header=False,
+            box=box.SIMPLE,
+            row_styles=["none", "dim"],
+        )
+        table2.add_column(style="cyan")
+        table2.add_column(style="red")
+        table2.add_column(style="blue", overflow="fold")
+        members = [x.username for x in self.members]
+        members.sort()
+        for items in zip_longest(["4."], ["MEMBERS:"], members):
+            items = [str(x) if x != None else "" for x in items]
+            table2.add_row(*items)
         return merged_tables(table1, table2)
 
     def exists(project: (Project | str)) -> bool:

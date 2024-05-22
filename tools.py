@@ -252,7 +252,7 @@ def date_time_is_valid(date_time: str) -> bool:
 
 
 def merged_tables(*args: Table) -> Table:
-    table = Table(show_header=False, show_edge=False,
+    table = Table(show_header=False, show_edge=False, pad_edge=False,
                   box=box.HORIZONTALS,)
     for _ in range(len(args)):
         table.add_column()
