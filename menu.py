@@ -98,17 +98,19 @@ class Menu:
         ) and id_is_valid(x), error_message="id already exists or contains whitespaces")
         if id == "0":
             return
-
-        options += id + "\nenter usernames to add to project, seperated by spaces: "
-        members = set(get_input(options).split()) - {User.current.username}
         project = Project(id, title, User.current)
         logger.success(
             f"User '{User.current.username}' Created project '{project.id}'")
+
+        options += id + "\nenter usernames to add to project, seperated by spaces: "
+        members = set(get_input(options).split()) - {User.current.username}
         for username in members:
             member = None
             try:
                 member = User(username)
-            except ValueError:
+            except ValueError as err:
+                logger.error(f"Unable to add '{
+                             username}'.({err})")
                 print(f"Unable to add [cyan]{
                       username}[/]: [error]user doesn't exist[/]")
             else:
@@ -188,6 +190,7 @@ class Menu:
                     choice = get_input(message, cls=False, limiting_function=lambda x: x == "0" or x.startswith(
                         "add") or x.startswith("remove"))
                     if choice == "0":
+                        logger.info(f"Adding/Removing members to/from task '{task.id}' canceled")
                         continue
                     elif choice.startswith("add"):
                         usernames = choice[3:].split()
@@ -195,9 +198,10 @@ class Menu:
                             user = None
                             try:
                                 user = User(username)
-                            except ValueError:
+                            except ValueError as err:
                                 print(f"undable to add {
                                       username}:[error] User doesn't exist")
+                                logger.error(f"Unable to add User '{username}' to task '{task.id}'({err})")
                                 continue
 
                             try:
@@ -205,6 +209,7 @@ class Menu:
                             except Exception as err:
                                 print(f"unable to add {
                                       username}:[error] {err}")
+                                logger.error(f"Unable to add User '{username}' to task '{task.id}'({err})")
                                 continue
 
                             print(f"{username} added successfully!",
@@ -219,9 +224,10 @@ class Menu:
                             user = None
                             try:
                                 user = User(username)
-                            except ValueError:
+                            except ValueError as err:
                                 print(f"undable to remove {
                                       username}:[error] User doesn't exist")
+                                logger.error(f"Unable to remove User '{username}' from task '{task.id}'({err})")
                                 continue
 
                             try:
@@ -229,6 +235,7 @@ class Menu:
                             except Exception as err:
                                 print(f"unable to remove {
                                       username}:[error] {err}")
+                                logger.error(f"Unable to remove User '{username}' from task '{task.id}'({err})")
                                 continue
 
                             print(f"{username} removed successfully!",
@@ -294,6 +301,7 @@ class Menu:
                             break
                         comment = Comment(User.current, choice)
                         task.add_comment(Comment(User.current, choice))
+                        logger.success(f"User '{User.current}' added a comment on task '{task.id}'")
                 case 10:
                     print(
                         "are you [warning]SURE[/] you want to remove this task? (y/n): ", end="")
@@ -317,6 +325,8 @@ class Menu:
         task_name = input("enter task name: ")
         new_task = Task(task_name)
         project.add_task(new_task)
+        logger.success(f"User '{User.current.username}' added task '{
+                       new_task.id}' to project '{project.id}'")
         Menu.display_task(project, new_task, True)
 
     @staticmethod
@@ -333,14 +343,21 @@ class Menu:
                     if new_title == "0":
                         continue
                     project.title = new_title
+                    logger.success(f"User '{User.current.username}' updated project '{
+                                   project.id}''s title to '{project.title}'")
                 case 2:
                     new_id = get_input("enter new id: ", cls=False, excluded=Project.instances.keys(
                     ) | {""}, error_message="this id is currently in use or is empty")
+                    logger.success(f"User '{User.current.username}' updated project '{
+                                   project.id}''s id to '{new_id}'")
                     project.change_id(new_id)
                 case 3:
                     new_leader = get_input("enter new leader's username: ", cls=False, included=project.members | {project.leader},
                                            error_message="user should already be a member of project")
                     project.leader = User(new_leader)
+                    logger.success(f"User '{User.current.username}' changed project '{
+                                   project.id}''s leader to '{project.leader.username}'")
+
                 case 4:
                     message = \
                         "use \"add <username 1> <username 2> ...\" to add a membeer\n" +\
@@ -350,6 +367,7 @@ class Menu:
                         "add") or x.startswith("remove"))
                     adding = choice.startswith("add")
                     if choice == "0":
+                        logger.info(f"Adding/Removing members to/from project '{project.id}' canceled")
                         continue
                     elif adding:
                         usernames = choice[3:].split()
@@ -359,9 +377,11 @@ class Menu:
                         user = None
                         try:
                             user = User(username)
-                        except ValueError:
+                        except ValueError as err:
                             print(f"undable to {"add" if adding else "remove"} {
                                 username}:[error] User doesn't exist")
+                            logger.error(
+                                f"Unable to{"add" if adding else "remove"} '{username}' {"to" if adding else "from"} project '{project.id}'.({err})")
                             continue
                         try:
                             project.add_member(
@@ -369,6 +389,8 @@ class Menu:
                         except Exception as err:
                             print(f"unable to {"add" if adding else "remove"} {
                                 username}:[error] {err}")
+                            logger.error(
+                                f"unable to {"add" if adding else "remove"} '{username}' {"to" if adding else "from"} project '{project.id}'.({err})")
                             continue
 
                         print(f"{username} {"added" if adding else "removed"} successfully!",
@@ -415,6 +437,7 @@ class Menu:
                     choice = get_input(
                         message + "enter usernname (0 to cancel): ", included, operation=op)
                     if choice == "0":
+                        logger.info(f"Adding member to project {project.id}' canceled")
                         continue
                     project.add_member(User(choice))
                     logger.success(f"User '{User.current.username}' added user '{
@@ -423,6 +446,7 @@ class Menu:
                     choice = get_input(
                         message + "enter username (0 to cancel): ", {0} | {x.username for x in project.members}, operation=op)
                     if choice == "0":
+                        logger.info(f"Removing member from project '{project.id}' canceled")
                         continue
                     project.remove_member(User(choice))
                     logger.success(f"User '{User.current.username}' removed user '{
@@ -440,6 +464,7 @@ class Menu:
                         logger.success(
                             f"User '{User.current.username}' removed project '{project.id}'")
                         return
+                    logger.info(f"Removing project '{project.id}' canceled")
                     print(
                         "[warning]removing canceled! press enter to continue: ", end="")
                     input()
