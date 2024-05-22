@@ -102,7 +102,8 @@ class Menu:
         options += id + "\nenter usernames to add to project, seperated by spaces: "
         members = set(get_input(options).split()) - {User.current.username}
         project = Project(id, title, User.current)
-        log_user_activity(User.current, 'INFO', f"Created project '{project.id}'")
+        log_user_activity(User.current, 'INFO',
+                          f"Created project '{project.id}'")
         for username in members:
             member = None
             try:
@@ -112,7 +113,8 @@ class Menu:
                       username}[/]: [error]user doesn't exist[/]")
             else:
                 project.add_member(member)
-                log_user_activity(User.current, 'INFO', f"Added user '{member.username}' to project '{project.id}'")
+                log_user_activity(User.current, 'INFO', f"Added user '{
+                                  member.username}' to project '{project.id}'")
                 print(f"{username} successfully added!", style="success")
         save()
         print("Project saved!", style="success")
@@ -120,33 +122,187 @@ class Menu:
         Menu.display_project(project, True)
 
     @staticmethod
-    def display_task(task: Task, leading: bool):
-        clear_screen()
-        print("Task", style="title")
-        print(task.info_table())
-        input()
+    def display_task(project: Project, task: Task, leading: bool):
+        while True:
+            clear_screen()
+
+            def op():
+                print("Task\n", style="title")
+                print(task.info_table())
+            choice = None
+            if leading:
+                choice = get_input("enter your choice: ",
+                                   range(11), operation=op, return_type=int)
+            else:
+                choice = get_input("enter your choice: ", [
+                    8, 9, 0], error_message="you can only choose between items 8, 9 and 0 as a non-member of this task!", operation=op, return_type=int)
+            match choice:
+                case 1:
+                    task_name = input("enter new name: ")
+                    task.name = task_name
+                case 2:
+                    print(
+                        "enter a description for your task (enter twice to finish the description): ")
+                    description = str()
+                    while description[-2:] != "\n\n":
+                        description += input() + "\n"
+                    description = description[:-2]
+                    task.description = description
+                case 3:
+                    start_time = get_input(f"enter start time with this format <year>-<month>-<day> <hour>:<minute>\texample: {
+                                           datetime.now().strftime(TIME_FORMAT)}\nor simply enter to set it to current: ",
+                                           limiting_function=lambda x: date_time_is_valid(x) and datetime.strptime(
+                                               x, TIME_FORMAT) <= task.end_time or x in ["", "0"], cls=False,
+                                           error_message="invalid input! Note: input must follow the mentioned format and also be before the end time")
+                    if start_time == "0":
+                        continue
+                    elif start_time == "":
+                        start_time = datetime.now().strftime(TIME_FORMAT)
+                    task.start_time = datetime.strptime(
+                        start_time, TIME_FORMAT)
+                case 4:
+                    end_time = get_input(f"enter end time with this format <year>-<month>-<day> <hour>:<minute>\t\texample: {
+                        datetime.now().strftime(TIME_FORMAT)}\nor simply enter to set it to current: ",
+                        limiting_function=lambda x: date_time_is_valid(x) and datetime.strptime(
+                        x, TIME_FORMAT) >= task.start_time or x in ["", "0"], cls=False,
+                        error_message="invalid input! Note: input must follow the mentioned format and also be after the start time")
+                    if end_time == "0":
+                        continue
+                    elif end_time == "":
+                        end_time = datetime.now().strftime(TIME_FORMAT)
+                    task.end_time = datetime.strptime(
+                        end_time, TIME_FORMAT)
+                case 5:
+                    message = \
+                        "use \"add <username 1> <username 2> ...\" to add a membeer\n" +\
+                        "use \"remove <username 1> <username 2> ...\" to remove a member\n" +\
+                        "enter 0 to cancel: "
+                    choice = get_input(message, cls=False, limiting_function=lambda x: x == "0" or x.startswith(
+                        "add") or x.startswith("remove"))
+                    if choice == "0":
+                        continue
+                    elif choice.startswith("add"):
+                        usernames = choice[3:].split()
+                        for username in usernames:
+                            user = None
+                            try:
+                                user = User(username)
+                            except ValueError:
+                                print(f"undable to add {
+                                      username}:[error] User doesn't exist")
+                                continue
+
+                            try:
+                                task.add_member(user)
+                            except Exception as err:
+                                print(f"unable to add {
+                                      username}:[error] {err}")
+                                continue
+
+                            print(f"{username} added successfully!",
+                                  style="success")
+                        print("press enter to continue: ")
+                        input()
+                    elif choice.startswith("remove"):
+                        usernames = choice[6:].split()
+                        for username in usernames:
+                            user = None
+                            try:
+                                user = User(username)
+                            except ValueError:
+                                print(f"undable to remove {
+                                      username}:[error] User doesn't exist")
+                                continue
+
+                            try:
+                                task.remove_member(user)
+                            except Exception as err:
+                                print(f"unable to remove {
+                                      username}:[error] {err}")
+                                continue
+
+                            print(f"{username} removed successfully!",
+                                  style="success")
+                        print("press enter to continue: ")
+                        input()
+                case 6:
+                    options = sorted(list(Priority), key=lambda x: x.value)
+                    message = str()
+                    for option in options:
+                        message += str(option.value) + ". " + \
+                            option.name + "\n"
+                    message += "enter your choice: "
+                    choice = get_input(message, range(
+                        len(options)+1), return_type=int, cls=False)
+                    if choice == 0:
+                        continue
+                    task.priority = options[choice-1]
+                case 7:
+                    options = sorted(list(Status), key=lambda x: x.value)
+                    message = str()
+                    for option in options:
+                        message += str(option.value) + ". " + \
+                            option.name + "\n"
+                    message += "enter your choice: "
+                    choice = get_input(message, range(
+                        len(options)+1), return_type=int, cls=False)
+                    if choice == 0:
+                        continue
+                    task.status = options[choice-1]
+                case 8:
+                    clear_screen()
+                    print("History: ", task.name, style="title")
+                    for comment in task.history:
+                        print(comment)
+                    print("press enter to continue: ", end="")
+                    input()
+                case 9:
+                    clear_screen()
+                    print("Comments: ", task.name, style="title")
+                    for comment in task.comments:
+                        print(comment)
+                    print("press enter to continue: ", end="")
+                    input()
+                case 10:
+                    print(
+                        "are you [warning]SURE[/] you want to remove this task? (y/n): ", end="")
+                    if input() == "y":
+                        project.remove_task(task)
+                        print(
+                            "[success]task was successfully removed![/] press enter to continue: ", end="")
+                        input()
+                        return
+                    print(
+                        "[warning]removing canceled! press enter to continue: ", end="")
+                    input()
+                case 0:
+                    return
 
     @staticmethod
-    def add_task(project):
-        clear_screen()
-        print("Add Task:", style="title")
-        print("In this section you can add a new task to the current project")
-        print("Enter 0 to cancel the process anytime")
-        print("You can change the entered data later")
-        name = get_input("enter task's name: ")
-        if name == "0":
-            return
-        print("enter a description for your task (this section can remain empty, enter twice to finish the description):")
-        description = str()
-        while description[-2:] != "\n\n":
-            description += input() + "\n"
-        description = description[:-2]
-        start_time = get_input(f"enter start time with this format <year>-<month>-<day> <hour>:<minute>\texample:{
-                               datetime.now().strftime(TIME_FORMAT)}\n or simply enter to set it to current: ", limiting_function=lambda x: date_time_is_valid(x) or x in ["", "0"])
-        if start_time == "0":
-            return
-        elif start_time == "":
-            start_time = datetime.now()
+    def add_task(project: Project):
+        # clear_screen()
+        # print("Add Task:", style="title")
+        # print("In this section you can add a new task to the current project")
+        # print("Enter 0 to cancel the process anytime")
+        # print("You can change the entered data later")
+        # name = get_input("enter task's name: ")
+        # if name == "0":
+        #     return
+        # print("enter a description for your task (this section can remain empty, enter twice to finish the description):")
+        # description = str()
+        # while description[-2:] != "\n\n":
+        #     description += input() + "\n"
+        # description = description[:-2]
+        # start_time = get_input(f"enter start time with this format <year>-<month>-<day> <hour>:<minute>\texample:{
+        #                        datetime.now().strftime(TIME_FORMAT)}\n or simply enter to set it to current: ", limiting_function=lambda x: date_time_is_valid(x) or x in ["", "0"])
+        # if start_time == "0":
+        #     return
+        # elif start_time == "":
+        #     start_time = datetime.now()
+        task_name = input("enter task name: ")
+        new_task = Task(task_name)
+        project.add_task(new_task)
+        Menu.display_task(project, new_task, True)
 
     @staticmethod
     def edit_project(project):
@@ -163,12 +319,14 @@ class Menu:
             def op():
                 print(table)
             included = [
-                x.name + f" {y+1}" for x in Status for y in range(len(project.partitioned()[x]))]
+                x.name + f" {y+1}" for x in Status for y in range(len(project.partitioned()[x]))] + ["0"]
             message = ""
             if leading:
                 message += "1. Add Membeer  2. Remove Member    3. Add Task\n"
                 message += "4. Edit Info    5. Remove Project   0. Back\n"
-                included += [str(x) for x in range(6)]
+                included += [str(x) for x in range(1, 6)]
+            else:
+                message += "0. Back\n"
             message += "\nenter \"<status> <number>\" to specify a task"
             message += "\nenter your choice: "
             choice = get_input(message, limiting_function=lambda x: x.upper(
@@ -187,14 +345,16 @@ class Menu:
                     if choice == "0":
                         continue
                     project.add_member(User(choice))
-                    log_user_activity(User.current, 'INFO', f"Added user '{choice}' to project '{project.id}'")
+                    log_user_activity(User.current, 'INFO', f"Added user '{
+                                      choice}' to project '{project.id}'")
                 case 2:
                     choice = get_input(
                         message + "enter username (0 to cancel): ", {0} | {x.username for x in project.members}, operation=op)
                     if choice == "0":
                         continue
                     project.remove_member(User(choice))
-                    log_user_activity(User.current, 'INFO', f"Removed user '{choice}' from project '{project.id}'")
+                    log_user_activity(User.current, 'INFO', f"Removed user '{
+                                      choice}' from project '{project.id}'")
                 case 3:
                     Menu.add_task(project)
                 case 4:
@@ -204,7 +364,8 @@ class Menu:
                         "are you [warning]SURE[/] you want to remove this project? (y/n): ", end="")
                     if input() == "y":
                         project.remove()
-                        log_user_activity(User.current, 'INFO', f"Removed project '{project.id}'")
+                        log_user_activity(User.current, 'INFO',
+                                          f"Removed project '{project.id}'")
                         return
                     print(
                         "[warning]removing canceled! press enter to continue: ", end="")
@@ -216,8 +377,8 @@ class Menu:
                     st = STATUS_DICT[st.upper()]
                     index = int(index) - 1
                     task = project.partitioned()[st][index]
-                    Menu.display_task(
-                        task, leading or task.has_member(User.current))
+                    Menu.display_task(project,
+                                      task, leading or task.has_member(User.current))
 
     @staticmethod
     def display_projects(leading: bool):
@@ -234,10 +395,11 @@ class Menu:
             for i in range(len(projects)):
                 options += "\n" + str(i + 1) + ". " + projects[i].id
             options += "\n0. Back\n$$error$$\nenter your choice "
-            choice = get_input(options, range(len(projects) + 1))
-            if choice == "0":
+            choice = get_input(options, range(
+                len(projects) + 1), return_type=int)
+            if choice == 0:
                 return
-            Menu.display_project(projects[choice], leading)
+            Menu.display_project(projects[choice-1], leading)
 
     @staticmethod
     def projects():

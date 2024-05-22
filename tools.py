@@ -25,7 +25,7 @@ def log_user_activity(user, level, message):
 theme = Theme({
     "error": "bold red",
     "warning": "bold yellow",
-    "success": "bold green",
+    "success": "italic green",
     "title": "black on cyan"
 })
 console = Console(theme=theme)

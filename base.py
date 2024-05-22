@@ -186,7 +186,8 @@ class Task:
     def info_table(self) -> Table:
         table = Table(
             show_header=False,
-            # row_styles=["none", "dim"],
+            show_edge=False,
+            pad_edge=False,
             box=box.SIMPLE,
         )
         table.add_column(style="cyan")
@@ -197,18 +198,20 @@ class Task:
         table.add_row("3.", "START TIME:",
                       self.start_time.strftime(TIME_FORMAT))
         table.add_row("4.", "END TIME:", self.end_time.strftime(TIME_FORMAT))
-        # members = Table(show_header=False, box=box.SIMPLE,
-        #                 style=["dim", "none"])
-        # members.add_column(style="blue")
-        # for member in self.members:
-        #     members.add_row(member.username)
-        members = ""
-        mod = 1
+        members = Table(show_header=False,
+                        row_styles=["none", "dim"],
+                        show_edge=False,
+                        pad_edge=False)
+        members.add_column(style="blue")
         for member in self.members:
-            members += f"[blue{" none" if mod else ""}]" + \
-                member.username + "\n"
-            mod = 1 - mod
-        members = members[:-1]
+            members.add_row(member.username)
+        # members = ""
+        # mod = 1
+        # for member in self.members:
+        #     members += f"[blue{" none" if mod else ""}]" + \
+        #         member.username + "\n"
+        #     mod = 1 - mod
+        # members = members[:-1]
         table.add_row("5.", "MEMBERS:", members)
         table.add_row("6.", "PRIORITY:", self.priority.name)
         table.add_row("7.", "STATUS:", self.status.name)
@@ -217,20 +220,6 @@ class Task:
         table.add_row("10.", "DELETE TASK", None)
         table.add_row("0.", "BACK", None)
         return table
-        # table2 = Table(
-        #     show_header=False,
-        #     box=box.SIMPLE,
-        #     row_styles=["none", "dim"],
-        # )
-        # table2.add_column(style="red")
-        # table2.add_column(style="blue", overflow="fold")
-        # members = [x.username for x in self.members]
-        # members.sort()
-        # for items in zip_longest(["MEMBERS:"], members):
-        #     items = [str(x) if x != None else "" for x in items]
-        #     table2.add_row(*items)
-        # table2.add_row("MEMBERS:", members)
-        # return merged_tables(table, table2)
 
     def __eq__(self, other: Task):
         return isinstance(other, Task) and self.id == other.id
@@ -456,7 +445,7 @@ class Project:
         table = Table(
             # box=box.ROUNDED,
             box=box.HORIZONTALS,
-            row_styles=["none", "dim"],
+            row_styles=["none", "dim",],
         )
         headers = sorted(list(Status), key=lambda x: x.value)
         table.add_column("[cyan bold]No.[/]", style="cyan")
