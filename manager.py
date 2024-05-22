@@ -1,38 +1,41 @@
 import argparse
-import tools
+from tools import *
 
-console = tools.console
+console = console
 
 
 class SystemManager:
-    def __init__(self, admin_file=tools.ADMIN_FILE_PATH,
-                 users_file=tools.USERS_FILE_PATH, emails_file=tools.EMAILS_FILE_PATH,
-                 projects_file=tools.PROJECTS_FILE_PATH, ) -> None:
+    def __init__(self, admin_file=ADMIN_FILE_PATH,
+                 users_file=USERS_FILE_PATH, projects_file=PROJECTS_FILE_PATH, tasks_file=TASKS_FILE_PATH) -> None:
         self.admin_file = admin_file
         self.users_file = users_file
-        self.emails_file = emails_file
         self.projects_file = projects_file
+        self.tasks_file = tasks_file
 
     # Adds new admin if non exists:
     def create_admin(self, username: str, password: str) -> None:
-        data = dict(tools.handeled_load_data(self.admin_file))
+        data = dict(handeled_load_data(self.admin_file))
         if bool(data):
             console.print("An admin already exists!", style='error')
-        else:
-            data[username] = password
-            tools.save_data(data, self.admin_file)
+            return
+        if pass_is_valid(password):
+            data[username] = encrypted(password)
+            save_data(data, self.admin_file)
             console.print(
                 f"Admin '{username}' saved successfully.", style='success')
+        else:
+            console.print(
+                "password should be at least 6 characters including letters, digits and symbols (!@#$%...) and not any whitespaces`", style='error')
 
     # Removes the existing admin:
     def remove_admin(self, username: str, password: str) -> None:
-        data = tools.handeled_load_data(self.admin_file)
+        data = handeled_load_data(self.admin_file)
         if bool(data) and username in data.keys():
-            if data[username] == password:
-                choice = tools.get_bool_input(
+            if decrypted(data[username]) == (password):
+                choice = get_bool_input(
                     f"Admin '{username}' would no longer exist\nProceed?(Y/N): ", "Yy", "Nn", False)
                 if choice:
-                    tools.save_data({}, self.admin_file)
+                    save_data({}, self.admin_file)
                     console.print(
                         f"admin '{username}' deleted successfully.", style='success')
                 else:
@@ -45,13 +48,13 @@ class SystemManager:
     # Deletes all existing data:
     def purge_data(self) -> None:
         if self.is_admin():
-            choice = tools.get_bool_input(
+            choice = get_bool_input(
                 "All data would be deleted\nProceed(Y/N): ", "Yy", "Nn", False
             )
             if choice:
-                tools.save_data({}, self.users_file)
-                tools.save_data({}, self.emails_file)
-                tools.save_data({}, self.projects_file)
+                save_data({}, self.users_file)
+                save_data({}, self.projects_file)
+                save_data({}, self.tasks_file)
                 console.print("Data purged successfully.", style='success')
             else:
                 console.print("Operation canceled", style='warning')
@@ -59,17 +62,21 @@ class SystemManager:
     # Changing admin:
     def change(self, username: str, password: str) -> None:
         if self.is_admin():
-            tools.save_data({username: password}, self.admin_file)
-            console.print("Admin updated successfully!", style='success')
+            if pass_is_valid(password):
+                save_data({username: encrypted(password)}, self.admin_file)
+                console.print("Admin updated successfully!", style='success')
+            else:
+                console.print(
+                    "password should be at least 6 characters including letters, digits and symbols (!@#$%...) and not any whitespaces`", style='error')
 
     # Confirms if current user is the admin:
     def is_admin(self) -> bool:
-        data = tools.handeled_load_data(self.admin_file)
+        data = handeled_load_data(self.admin_file)
         if bool(data):
             old_pass = ""
             for pas in data.values():
-                old_pass = pas
-            verify = input("Password: ")
+                old_pass = decrypted(pas)
+            verify = getpass("Password: ")
             if verify != old_pass:
                 console.print("Wrong password!", style='error')
                 return False
@@ -81,21 +88,19 @@ class SystemManager:
     # Diactivates the given user:
     def ban(self, username: str):
         if self.is_admin():
-
-            data = tools.handeled_load_data(self.users_file)
+            data = handeled_load_data(self.users_file)
             if username not in data.keys():
                 console.print(
                     f"User '{username}' does not exist!", style='error')
                 return
-
             data[username]['is_active'] = False
-            tools.save_data(data, self.users_file)
+            save_data(data, self.users_file)
             console.print(f"User '{username}' banned", style='success')
 
     # Prints users:
     def view(self, substring=''):
-        user_dict = tools.handeled_load_data(self.users_file)
-        i = 1
+        user_dict = handeled_load_data(self.users_file)
+        i = 0
         for username in user_dict.keys():
             if substring in username:
                 console.print(f"{i+1}- {username}")
