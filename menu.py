@@ -257,12 +257,24 @@ class Menu:
                     print("press enter to continue: ", end="")
                     input()
                 case 9:
-                    clear_screen()
-                    print("Comments: ", task.name, style="title")
-                    for comment in task.comments:
-                        print(comment)
-                    print("press enter to continue: ", end="")
-                    input()
+                    while True:
+                        clear_screen()
+                        print("Comments: ", task.name, style="title")
+                        for comment in task.comments:
+                            try:
+                                print(f"[cyan]{comment.user.username}[/]: {
+                                    comment.content}    [dim]{comment.time.strftime(TIME_FORMAT)}")
+                            except:
+                                main_print(f"{color_dict["cyan"]}{comment.user.username}{
+                                           color_dict["reset"]}: {comment.content}    ", end="")
+                                print(comment.time.strftime(
+                                    TIME_FORMAT), style="dim")
+                        print("enter your comment (0 to go back): ", end="")
+                        choice = input()
+                        if choice == "0":
+                            break
+                        comment = Comment(User.current, choice)
+                        task.add_comment(Comment(User.current, choice))
                 case 10:
                     print(
                         "are you [warning]SURE[/] you want to remove this task? (y/n): ", end="")

@@ -22,6 +22,19 @@ def log_user_activity(user, level, message):
     bound_logger.log(level, message)
 
 
+color_dict = {"black": "\x1b[30m",
+              "red": "\x1b[31m",
+              "green": "\x1b[32m",
+              "yellow": "\x1b[33m",
+              "blue": "\x1b[34m",
+              "magenta": "\x1b[35m",
+              "cyan": "\x1b[36m",
+              "white": "\x1b[37m",
+              "terminal_green": "\033[38;2;0;166;125m",
+              "grey": "\033[90m",
+              "blink": "\033[5m",
+              "strikethrough": "\033[9m",
+              "reset": "\x1b[0m"}
 theme = Theme({
     "error": "bold red",
     "warning": "bold yellow",
@@ -29,6 +42,7 @@ theme = Theme({
     "title": "black on cyan"
 })
 console = Console(theme=theme)
+main_print = print
 print = console.print
 
 TIME_FORMAT = "%Y-%m-%d %H:%M"
@@ -249,3 +263,9 @@ def merged_tables(*args: Table) -> Table:
         table.add_column()
     table.add_row(*args)
     return table
+
+
+def unbracketed(text: str):
+    pattern = r'\[.*?\]'
+    result = re.sub(pattern, '', text, flags=re.DOTALL)
+    return result

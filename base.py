@@ -154,6 +154,21 @@ class User:
         raise ValueError(f'wrong type of argument({type(user)})')
 
 
+class Event:
+    def __init__(self, user: User, content: str, time=datetime.now()) -> None:
+        self.user = user
+        self.content = content
+        self.time = time
+
+    
+    def dump(self):
+        return [self.user.username, self.content, self.time.strftime(TIME_FORMAT)]
+    
+
+
+Comment = Event
+
+
 class Task:
     instances = dict()
 
@@ -309,19 +324,25 @@ class Task:
 
     @property
     def history(self):
-        return Task.instances[self.id]['history']
+        return [Event(User(x[0]), x[1], datetime.strptime(x[2], TIME_FORMAT)) for x in Task.instances[self.id]['history']]
 
     @history.setter
     def history(self, new_history):
-        Task.instances[self.id]['history'] = new_history
+        Task.instances[self.id]['history'] = [x.dump() for x in new_history]
 
     @property
     def comments(self):
-        return Task.instances[self.id]['comments']
+        return [Comment(User(x[0]), x[1], datetime.strptime(x[2], TIME_FORMAT)) for x in Task.instances[self.id]['comments']]
 
     @comments.setter
     def comments(self, new_comments):
-        Task.instances[self.id]['comments'] = new_comments
+        Task.instances[self.id]['comments'] = [x.dump() for x in new_comments]
+
+    def add_comment(self, comment: Comment):
+        self.comments += [comment]
+
+    def add_to_history(self, event: Event):
+        self.history += [event]
 
     @staticmethod
     def exists(task: (Task | str)) -> bool:
