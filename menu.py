@@ -27,7 +27,7 @@ class Menu:
         if password == "0":
             return
         User.current = User(username)
-        log_user_activity(user, 'INFO', 'Logged in')
+        logger.success(f"User '{user.username}' Logged in")
         Menu.main()
 
     @staticmethod
@@ -75,7 +75,7 @@ class Menu:
 
         password = encrypted(password)
         user = User(username, name, email, password)
-        log_user_activity(user, 'INFO', "Signed up")
+        logger.success(f"User '{user.username}' Signed up")
         save()
         User.current = user
         print("you successfully signed up! press enter to continue: ",
@@ -102,8 +102,8 @@ class Menu:
         options += id + "\nenter usernames to add to project, seperated by spaces: "
         members = set(get_input(options).split()) - {User.current.username}
         project = Project(id, title, User.current)
-        log_user_activity(User.current, 'INFO',
-                          f"Created project '{project.id}'")
+        logger.success(
+            f"User '{User.current.username}' Created project '{project.id}'")
         for username in members:
             member = None
             try:
@@ -113,8 +113,8 @@ class Menu:
                       username}[/]: [error]user doesn't exist[/]")
             else:
                 project.add_member(member)
-                log_user_activity(User.current, 'INFO', f"Added user '{
-                                  member.username}' to project '{project.id}'")
+                logger.success(f"User '{User.current.username}' Added user '{
+                               member.username}' to project '{project.id}'")
                 print(f"{username} successfully added!", style="success")
         save()
         print("Project saved!", style="success")
@@ -140,6 +140,8 @@ class Menu:
                 case 1:
                     task_name = input("enter new name: ")
                     task.name = task_name
+                    logger.success(f"User '{User.current.username}' updated task '{
+                                   task.id}''s name to '{task.name}'")
                 case 2:
                     print(
                         "enter a description for your task (enter twice to finish the description): ")
@@ -148,6 +150,8 @@ class Menu:
                         description += input() + "\n"
                     description = description[:-2]
                     task.description = description
+                    logger.success(f"User '{User.current.username}' updated task '{
+                                   task.id}''s description to '{task.description}'")
                 case 3:
                     start_time = get_input(f"enter start time with this format <year>-<month>-<day> <hour>:<minute>\texample: {
                                            datetime.now().strftime(TIME_FORMAT)}\nor simply enter to set it to current: ",
@@ -160,6 +164,8 @@ class Menu:
                         start_time = datetime.now().strftime(TIME_FORMAT)
                     task.start_time = datetime.strptime(
                         start_time, TIME_FORMAT)
+                    logger.success(f"User '{User.current.username}' updated task '{
+                                   task.id}''s start_time to '{task.start_time}'")
                 case 4:
                     end_time = get_input(f"enter end time with this format <year>-<month>-<day> <hour>:<minute>\t\texample: {
                         datetime.now().strftime(TIME_FORMAT)}\nor simply enter to set it to current: ",
@@ -172,6 +178,8 @@ class Menu:
                         end_time = datetime.now().strftime(TIME_FORMAT)
                     task.end_time = datetime.strptime(
                         end_time, TIME_FORMAT)
+                    logger.success(f"User '{User.current.username}' updated task '{
+                                   task.id}''s end-time to '{task.end_time}'")
                 case 5:
                     message = \
                         "use \"add <username 1> <username 2> ...\" to add a membeer\n" +\
@@ -201,6 +209,8 @@ class Menu:
 
                             print(f"{username} added successfully!",
                                   style="success")
+                            logger.success(f"User '{User.current.username}' added user '{
+                                           user.username}' to task '{task.id}'")
                         print("press enter to continue: ")
                         input()
                     elif choice.startswith("remove"):
@@ -223,6 +233,8 @@ class Menu:
 
                             print(f"{username} removed successfully!",
                                   style="success")
+                            logger.success(f"User '{User.current.username}' removed user '{
+                                           user.username}' from task '{task.id}'")
                         print("press enter to continue: ")
                         input()
                 case 6:
@@ -237,6 +249,7 @@ class Menu:
                     if choice == 0:
                         continue
                     task.priority = options[choice-1]
+                    logger.success(f"User '{User.current.username}' updated task '{task.id}''s priority to '{task.priority.name}'")
                 case 7:
                     options = sorted(list(Status), key=lambda x: x.value)
                     message = str()
@@ -249,6 +262,7 @@ class Menu:
                     if choice == 0:
                         continue
                     task.status = options[choice-1]
+                    logger.success(f"User '{User.current.username}' updated task '{task.id}''s status to '{task.status.name}'")
                 case 8:
                     clear_screen()
                     print("History: ", task.name, style="title")
@@ -280,10 +294,12 @@ class Menu:
                         "are you [warning]SURE[/] you want to remove this task? (y/n): ", end="")
                     if input() == "y":
                         project.remove_task(task)
+                        logger.success(f"User '{User.current.username}' removed task '{task.id}'")
                         print(
                             "[success]task was successfully removed![/] press enter to continue: ", end="")
                         input()
                         return
+                    logger.info(f"Removing task '{task.id}' canceled")
                     print(
                         "[warning]removing canceled! press enter to continue: ", end="")
                     input()
@@ -357,16 +373,16 @@ class Menu:
                     if choice == "0":
                         continue
                     project.add_member(User(choice))
-                    log_user_activity(User.current, 'INFO', f"Added user '{
-                                      choice}' to project '{project.id}'")
+                    logger.success(f"User '{User.current.username}' added user '{
+                        choice}' to project '{project.id}'")
                 case 2:
                     choice = get_input(
                         message + "enter username (0 to cancel): ", {0} | {x.username for x in project.members}, operation=op)
                     if choice == "0":
                         continue
                     project.remove_member(User(choice))
-                    log_user_activity(User.current, 'INFO', f"Removed user '{
-                                      choice}' from project '{project.id}'")
+                    logger.success(f"User '{User.current.username}' removed user '{
+                        choice}' from project '{project.id}'")
                 case 3:
                     Menu.add_task(project)
                 case 4:
@@ -376,8 +392,8 @@ class Menu:
                         "are you [warning]SURE[/] you want to remove this project? (y/n): ", end="")
                     if input() == "y":
                         project.remove()
-                        log_user_activity(User.current, 'INFO',
-                                          f"Removed project '{project.id}'")
+                        logger.success(
+                            f"User '{User.current.username}' removed project '{project.id}'")
                         return
                     print(
                         "[warning]removing canceled! press enter to continue: ", end="")

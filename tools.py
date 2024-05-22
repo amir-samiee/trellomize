@@ -12,14 +12,9 @@ from getpass import getpass
 import re
 from loguru import logger
 
-log_format = "{time:YYYY-MM-DD HH:mm:ss}|{level}  |{extra[user]}  |{message}"
-logger.configure(
-    handlers=[{"sink": 'user-activity.log', "format": log_format}])
-
-
-def log_user_activity(user, level, message):
-    bound_logger = logger.bind(user=user)
-    bound_logger.log(level, message)
+logger.remove()
+log_format = "{time:YYYY-MM-DD HH:mm:ss}|{level}  |{message}"
+logger.add('file.log', format=log_format)
 
 
 color_dict = {"black": "\x1b[30m",
