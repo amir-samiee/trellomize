@@ -517,7 +517,54 @@ class Menu:
 
     @staticmethod
     def edit_profile():
-        pass
+        user = User.current
+        # user = User()
+        while True:
+            clear_screen()
+
+            def op():
+                print(user.info_table())
+            choice = get_input("enter your choice: ", range(
+                5), operation=op, return_type=int)
+            match choice:
+                case 1:
+                    new_username = get_input(
+                        "enter new username (0 to cancel): ", excluded=User.instances.keys(), cls=False)
+                    if new_username == "0":
+                        continue
+                    user.change_username(new_username)
+                case 2:
+                    new_name = input("enter new name: ")
+                    if new_name:
+                        user.name = new_name
+                case 3:
+                    new_email = get_input("enter new email (0 to cancel): ", limiting_function=lambda x: x == "0" or email_is_valid(
+                        x) and x not in [x["email"] for x in User.instances.values()], error_message="email is invalid or already in use", cls=False)
+                    if new_email == "0":
+                        continue
+                    user.email = new_email
+                case 4:
+                    current_pass = get_input(
+                        "enter your current password (0 to cancel): ", included=[decrypted(user.password), "0"], error_message="wrong password", is_pass=True, cls=False)
+                    if current_pass == "0":
+                        continue
+
+                    new_pass = get_input(
+                        "enter your new password (0 to cancel): ", limiting_function=lambda x: x == "0" or pass_is_valid(
+                            x),
+                        error_message="password should be at least 6 characters including letters, digits and symbols (!@#$%...) and not any whitespaces`", is_pass=True, cls=False)
+                    if new_pass == "0":
+                        continue
+
+                    # checking password
+                    repeated_pass = get_input(
+                        "enter the new password again (0 to cancel): ", [new_pass, "0"], error_message="password doesn't match! try again", is_pass=True, cls=False)
+                    if repeated_pass == "0":
+                        continue
+                    new_pass = encrypted(new_pass)
+                    user.password = new_pass
+                case 0:
+                    return
 
     @staticmethod
     def main():

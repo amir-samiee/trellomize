@@ -145,6 +145,45 @@ class User:
         User.instances[self.username]['involved'] = [
             x.id for x in new_involved]
 
+    def change_username(self, new_username):
+        if new_username in User.instances.keys():
+            raise ValueError("username already taken")
+        old_username = self.username
+        for project in self.involved:
+            Project.instances[project.id]["members"].remove(old_username)
+            Project.instances[project.id]["members"].append(new_username)
+            for task in project.tasks:
+                for i in range(len(Task.instances[task.id]["comments"])):
+                    comment = Task.instances[task.id]["comments"][i]
+                    if comment[0] == old_username:
+                        Task.instances[task.id]["comments"][i][0] = new_username
+        for project in self.leading:
+            Project.instances[project.id]["leader"] = new_username
+            for task in project.tasks:
+                for i in range(len(Task.instances[task.id]["comments"])):
+                    comment = Task.instances[task.id]["comments"][i]
+                    if comment[0] == old_username:
+                        Task.instances[task.id]["comments"][i][0] = new_username
+        User.instances[new_username] = User.instances[old_username]
+        User.instances.pop(old_username)
+        self.username = new_username
+
+    def info_table(self) -> Table:
+        table = Table(
+            show_header=False,
+            # row_styles=["none", "dim"],
+            box=box.SIMPLE,
+        )
+        table.add_column(style="cyan")
+        table.add_column(style="red")
+        table.add_column(style="blue", overflow="fold")
+        table.add_row("1.", "USERNAME:", self.username)
+        table.add_row("2.", "NAME:", self.name)
+        table.add_row("3.", "EMAIL:", self.email)
+        table.add_row("4.", "PASSWORD:", "-------")
+        table.add_row("0.", "BACK:", None)
+        return table
+
     @staticmethod
     def exists(user: (User | str)) -> bool:
         if type(user) == str:
@@ -455,9 +494,15 @@ class Project:
     def change_id(self, new_id: str):
         if new_id in Project.instances.keys():
             raise ValueError("id is already in use")
+        self.leader.leading -= {self}
+        for member in self.members:
+            member.involved -= {self}
         Project.instances[new_id] = Project.instances[self.id]
         Project.instances.pop(self.id)
         self.id = new_id
+        self.leader.leading |= {self}
+        for member in self.members:
+            member.involved |= {self}
 
     def partitioned(self) -> dict:
         partition = {x: [] for x in Status}
