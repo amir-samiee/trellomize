@@ -107,8 +107,8 @@ def test_user_hash(clear_instances, userfactory):
     assert hash(user1) != hash(user3)
 
 
-def test_user_repr(clear_instances, basic_user):
-    assert repr(basic_user) == basic_user.username
+def test_user_str(clear_instances, basic_user):
+    assert str(basic_user) == basic_user.username
 
 
 def test_user_properties(clear_instances, basic_user, basic_project):
@@ -130,7 +130,7 @@ def test_user_exists_test(clear_instances, basic_user):
     assert not User.exists(f"not{basic_user.username}")
 
 
-@patch('base.load_data', MagicMock(return_value=sample_users))
+@patch('base.handeled_load_data', MagicMock(return_value=sample_users))
 def test_load_user_from_file(clear_instances):
     User.load_from_file()
     assert User.instances == sample_users

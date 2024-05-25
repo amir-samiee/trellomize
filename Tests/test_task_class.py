@@ -1,10 +1,10 @@
+from base import *
+from datetime import datetime, timedelta
+from unittest.mock import patch, MagicMock
+import pytest
 from pathlib import Path
 import sys
 sys.path.append(str(Path.cwd()))
-import pytest
-from unittest.mock import patch, MagicMock
-from datetime import datetime, timedelta
-from base import *
 
 sample_tasks = {
     "1": {
@@ -136,14 +136,15 @@ def test_task_properties(clear_instances, advanced_task, userfactory):
     task, _, _, _ = advanced_task
     task.name = "Updated Task Name"
     task.description = "Updated Description"
-    task.start_time = new_start_time = datetime.now() + timedelta(days=1)
+    task.start_time = new_start_time = datetime.now() + timedelta(days=-1)
     task.end_time = new_end_time = datetime.now() + timedelta(days=2)
     task.priority = Priority.HIGH
     task.status = Status.DONE
     user = userfactory()
     task.members = {user}
     validate_task_properties(task, "Updated Task Name", "Updated Description", Priority.HIGH,
-                             Status.DONE, {user}, new_start_time, new_end_time)
+                             Status.DONE, {user}, datetime.strptime(new_start_time.strftime(TIME_FORMAT),
+                                                                    TIME_FORMAT), datetime.strptime(new_end_time.strftime(TIME_FORMAT), TIME_FORMAT))
 
 
 def test_task_exists(clear_instances):
@@ -153,7 +154,7 @@ def test_task_exists(clear_instances):
     assert not Task.exists("nonexistent_id")
 
 
-@patch('base.load_data', MagicMock(return_value=sample_tasks))
+@patch('base.handeled_load_data', MagicMock(return_value=sample_tasks))
 def test_load_task_from_file(clear_instances):
     Task.load_from_file()
     assert Task.instances == sample_tasks

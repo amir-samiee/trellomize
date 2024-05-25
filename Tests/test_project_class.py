@@ -119,7 +119,7 @@ def test_project_exists(clear_instances, advanced_project):
     assert not Project.exists("nonexistent_id")
 
 
-@patch('base.load_data', MagicMock(return_value=sample_projects))
+@patch('base.handeled_load_data', MagicMock(return_value=sample_projects))
 def test_load_project_from_file(clear_instances):
     Project.load_from_file()
     assert Project.instances == sample_projects
