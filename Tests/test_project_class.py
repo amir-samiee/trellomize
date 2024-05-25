@@ -1,9 +1,9 @@
 from pathlib import Path
 import sys
-sys.path.append(str(Path.cwd()))
 import pytest
 from unittest.mock import patch, MagicMock, call
 from test_task_class import clear_instances, userfactory
+sys.path.append(str(Path.cwd()))
 from base import *
 
 sample_projects = {

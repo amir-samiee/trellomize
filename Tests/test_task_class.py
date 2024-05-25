@@ -1,10 +1,10 @@
+sys.path.append(str(Path.cwd()))
 from base import *
 from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
 import pytest
 from pathlib import Path
 import sys
-sys.path.append(str(Path.cwd()))
 
 sample_tasks = {
     "1": {
