@@ -154,22 +154,22 @@ class SystemManager:
         subparsers = parser.add_subparsers(
             dest="subcommand", title="subcommands")
 
+        # Admin parser:
+        admin_parser = subparsers.add_parser(
+            name="admin", help="Admin related tasks")
+        admin_subparsers = admin_parser.add_subparsers(
+            dest="admin_subcommand", title="admin_subcomands"
+        )
+
         # Create admin parser
-        create_admin_parser = subparsers.add_parser(
-            name="create-admin", help="Creates an admin"
+        create_admin_parser = admin_subparsers.add_parser(
+            name="create", help="Creates an admin"
         )
         create_admin_parser.add_argument(
             "-u", "--username", required=True, help="Admin's username"
         )
         create_admin_parser.add_argument(
             "-p", "--password", required=True, help="Admin's password"
-        )
-
-        # Admin parser:
-        admin_parser = subparsers.add_parser(
-            name="admin", help="Admin related tasks")
-        admin_subparsers = admin_parser.add_subparsers(
-            dest="admin_subcommand", title="admin_subcomands"
         )
 
         # Remove admin parser:
@@ -238,13 +238,12 @@ if __name__ == "__main__":
     parser = manager.parser()
     args = parser.parse_args()
 
-    if args.subcommand == "create-admin":
-        manager.create_admin(args.username, args.password)
-
-    elif args.subcommand == "purge-data":
+    if args.subcommand == "purge-data":
         manager.purge_data()
 
     elif args.subcommand == "admin":
+        if args.admin_subcommand == "create":
+            manager.create_admin(args.username, args.password)
         if args.admin_subcommand == "remove":
             manager.remove_admin(args.username, args.password)
         elif args.admin_subcommand == "change":
