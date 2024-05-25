@@ -7,21 +7,21 @@ console = console
 class SystemManager:
     def __init__(self, admin_file=ADMIN_FILE_PATH,
                  users_file=USERS_FILE_PATH, projects_file=PROJECTS_FILE_PATH, tasks_file=TASKS_FILE_PATH) -> None:
-        self.admin_file = admin_file
-        self.users_file = users_file
-        self.projects_file = projects_file
-        self.tasks_file = tasks_file
+        self.admin_data = admin_file
+        self.users_data = users_file
+        self.projects_data = projects_file
+        self.tasks_data = tasks_file
+        self.data = handeled_load_data(ADMIN_FILE_PATH)
 
     # Adds new admin if non exists:
     def create_admin(self, username: str, password: str) -> None:
-        data = dict(handeled_load_data(self.admin_file))
-        if bool(data):
+        if bool(self.data):
             console.print("An admin already exists!", style='error')
             logger.error('Failed to create admin.(Admin already existed)')
             return
         if pass_is_valid(password):
-            data[username] = encrypted(password)
-            save_data(data, self.admin_file)
+            self.data[username] = encrypted(password)
+            save_data(self.data, self.admin_file)
             console.print(
                 f"Admin '{username}' saved successfully.", style='success')
             logger.success(f"Admin '{username}' has been created successfully")
@@ -32,9 +32,8 @@ class SystemManager:
 
     # Removes the existing admin:
     def remove_admin(self, username: str, password: str) -> None:
-        data = handeled_load_data(self.admin_file)
-        if bool(data) and username in data.keys():
-            if decrypted(data[username]) == (password):
+        if bool(self.data) and username in self.data.keys():
+            if decrypted(self.data[username]) == (password):
                 choice = get_bool_input(
                     f"Admin '{username}' would no longer exist\nProceed?(Y/N): ", "Yy", "Nn", False)
                 if choice:
@@ -54,8 +53,6 @@ class SystemManager:
 
     # Deletes all existing data:
     def purge_data(self) -> None:
-        admin_data = handeled_load_data(ADMIN_FILE_PATH)
-        username = admin_data.keys()[0]
         if self.is_admin():
             choice = get_bool_input(
                 "All data would be deleted\nProceed(Y/N): ", "Yy", "Nn", False
@@ -65,7 +62,7 @@ class SystemManager:
                 save_data({}, self.projects_file)
                 save_data({}, self.tasks_file)
                 console.print("Data purged successfully.", style='success')
-                logger.success(f"Admin '{username}' purged all data")
+                logger.success(f"Admin '{self.data.keys()[0]}' purged all data")
             else:
                 console.print("Operation canceled", style='warning')
                 logger.info("Purging data canceled")
@@ -84,10 +81,9 @@ class SystemManager:
 
     # Confirms if current user is the admin:
     def is_admin(self) -> bool:
-        data = handeled_load_data(self.admin_file)
-        if bool(data):
+        if bool(self.data):
             old_pass = ""
-            for pas in data.values():
+            for pas in self.data.values():
                 old_pass = decrypted(pas)
             verify = getpass("Password: ")
             if verify != old_pass:
@@ -102,8 +98,6 @@ class SystemManager:
 
     # Diactivates the given user:
     def ban(self, username: str):
-        admin_data = handeled_load_data(ADMIN_FILE_PATH)
-        ad_username = admin_data.keys()[0]
         if self.is_admin():
             data = handeled_load_data(self.users_file)
             if username not in data.keys():
@@ -114,17 +108,15 @@ class SystemManager:
             if data[username]['is_active'] == False:
                 console.print(
                     f"User '{username}' is already banned!", style='error')
-                logger.error("Banning user failed.(User '{username}' is already banned)")
+                logger.error(f"Banning user failed.(User '{username}' is already banned)")
                 return
             data[username]['is_active'] = False
             save_data(data, self.users_file)
             console.print(f"User '{username}' banned", style='success')
-            logger.success(f"Admin '{ad_username}' banned user '{username}'")
+            logger.success(f"Admin '{self.data.keys()[0]}' banned user '{username}'")
 
     # Activates users:
     def unban(self, username: str):
-        admin_data = handeled_load_data(ADMIN_FILE_PATH)
-        ad_username = admin_data.keys()[0]
         if self.is_admin():
             data = handeled_load_data(self.users_file)
             if username not in data.keys():
@@ -140,7 +132,7 @@ class SystemManager:
             data[username]['is_active'] = True
             save_data(data, self.users_file)
             console.print(f"User '{username}' unbanned", style='success')
-            logger.success(f"Admin '{ad_username}' unbanned user '{username}'")
+            logger.success(f"Admin '{self.data.keys()[0]}' unbanned user '{username}'")
 
     # Prints users:
     def view(self, substring='', banned_users=False):
