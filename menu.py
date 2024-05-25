@@ -14,12 +14,9 @@ class Menu:
             return
         user = User(username)
         if not user.is_active:
-            # print(message)
-            # print("Your account has been deactivated by the system admin! Press enter to go bacck to the first page: ", style="error")
             message += username + \
                 "\n[error]Your account has been deactivated by the system admin!\nPress enter to go bacck to the first page: [/]"
             get_input(message)
-            # input()
             return
         message += username + "\nenter your password (0 to go back): "
         password = get_input(
@@ -140,46 +137,58 @@ class Menu:
                     8, 9, 0], error_message="you can only choose between items 8, 9 and 0 as a non-member of this task!", operation=op, return_type=int)
             match choice:
                 case 1:
-                    task_name = input("enter new name: ")
-                    task.name = task_name
+                    old_name = task.name
+                    new_name = input("enter new name: ")
+                    task.name = new_name
+                    task.add_to_history(Event(User.current, f"task renamed from {
+                                        old_name} to {new_name}"))
                     logger.success(f"User '{User.current.username}' updated task '{
                                    task.id}''s name to '{task.name}'")
                 case 2:
+                    old_description = task.description
                     print(
                         "enter a description for your task (enter twice to finish the description): ")
-                    description = str()
-                    while description[-2:] != "\n\n":
-                        description += input() + "\n"
-                    description = description[:-2]
-                    task.description = description
+                    new_description = str()
+                    while new_description[-2:] != "\n\n":
+                        new_description += input() + "\n"
+                    new_description = new_description[:-2]
+                    task.description = new_description
+                    task.add_to_history(Event(User.current, f"task description changed:\nold:\n{
+                                        old_description}\nnew:\n{new_description}"))
                     logger.success(f"User '{User.current.username}' updated task '{
                                    task.id}''s description to '{task.description}'")
                 case 3:
-                    start_time = get_input(f"enter start time with this format <year>-<month>-<day> <hour>:<minute>\texample: {
-                                           datetime.now().strftime(TIME_FORMAT)}\nor simply enter to set it to current: ",
-                                           limiting_function=lambda x: date_time_is_valid(x) and datetime.strptime(
-                                               x, TIME_FORMAT) <= task.end_time or x in ["", "0"], cls=False,
-                                           error_message="invalid input! Note: input must follow the mentioned format and also be before the end time")
-                    if start_time == "0":
+                    old_start_time = task.start_time
+                    new_start_time = get_input(f"enter start time with this format <year>-<month>-<day> <hour>:<minute>\texample: {
+                        datetime.now().strftime(TIME_FORMAT)}\nor simply enter to set it to current: ",
+                        limiting_function=lambda x: date_time_is_valid(x) and datetime.strptime(
+                        x, TIME_FORMAT) <= task.end_time or x in ["", "0"], cls=False,
+                        error_message="invalid input! Note: input must follow the mentioned format and also be before the end time")
+                    if new_start_time == "0":
                         continue
-                    elif start_time == "":
-                        start_time = datetime.now().strftime(TIME_FORMAT)
+                    elif new_start_time == "":
+                        new_start_time = datetime.now().strftime(TIME_FORMAT)
                     task.start_time = datetime.strptime(
-                        start_time, TIME_FORMAT)
+                        new_start_time, TIME_FORMAT)
+                    task.add_to_history(Event(User.current, f"task start time change from {
+                                        old_start_time.strftime(TIME_FORMAT)} to {new_start_time}"))
                     logger.success(f"User '{User.current.username}' updated task '{
                                    task.id}''s start_time to '{task.start_time}'")
                 case 4:
-                    end_time = get_input(f"enter end time with this format <year>-<month>-<day> <hour>:<minute>\t\texample: {
+                    old_end_time = task.end_time
+                    new_end_time = get_input(f"enter end time with this format <year>-<month>-<day> <hour>:<minute>\t\texample: {
                         datetime.now().strftime(TIME_FORMAT)}\nor simply enter to set it to current: ",
                         limiting_function=lambda x: date_time_is_valid(x) and datetime.strptime(
                         x, TIME_FORMAT) >= task.start_time or x in ["", "0"], cls=False,
                         error_message="invalid input! Note: input must follow the mentioned format and also be after the start time")
-                    if end_time == "0":
+                    if new_end_time == "0":
                         continue
-                    elif end_time == "":
-                        end_time = datetime.now().strftime(TIME_FORMAT)
+                    elif new_end_time == "":
+                        new_end_time = datetime.now().strftime(TIME_FORMAT)
                     task.end_time = datetime.strptime(
-                        end_time, TIME_FORMAT)
+                        new_end_time, TIME_FORMAT)
+                    task.add_to_history(Event(User.current, f"task end time changed from {
+                                        old_end_time.str(TIME_FORMAT)} to {new_end_time}"))
                     logger.success(f"User '{User.current.username}' updated task '{
                                    task.id}''s end-time to '{task.end_time}'")
                 case 5:
@@ -190,7 +199,8 @@ class Menu:
                     choice = get_input(message, cls=False, limiting_function=lambda x: x == "0" or x.startswith(
                         "add") or x.startswith("remove"))
                     if choice == "0":
-                        logger.info(f"Adding/Removing members to/from task '{task.id}' canceled")
+                        logger.info(
+                            f"Adding/Removing members to/from task '{task.id}' canceled")
                         continue
                     elif choice.startswith("add"):
                         usernames = choice[3:].split()
@@ -201,7 +211,8 @@ class Menu:
                             except ValueError as err:
                                 print(f"undable to add {
                                       username}:[error] User doesn't exist")
-                                logger.error(f"Unable to add User '{username}' to task '{task.id}'({err})")
+                                logger.error(f"Unable to add User '{
+                                             username}' to task '{task.id}'({err})")
                                 continue
 
                             try:
@@ -209,11 +220,14 @@ class Menu:
                             except Exception as err:
                                 print(f"unable to add {
                                       username}:[error] {err}")
-                                logger.error(f"Unable to add User '{username}' to task '{task.id}'({err})")
+                                logger.error(f"Unable to add User '{
+                                             username}' to task '{task.id}'({err})")
                                 continue
 
                             print(f"{username} added successfully!",
                                   style="success")
+                            task.add_to_history(Event(
+                                User.current, f"{user.username} was added to the task"))
                             logger.success(f"User '{User.current.username}' added user '{
                                            user.username}' to task '{task.id}'")
                         print("press enter to continue: ")
@@ -227,7 +241,8 @@ class Menu:
                             except ValueError as err:
                                 print(f"undable to remove {
                                       username}:[error] User doesn't exist")
-                                logger.error(f"Unable to remove User '{username}' from task '{task.id}'({err})")
+                                logger.error(f"Unable to remove User '{
+                                             username}' from task '{task.id}'({err})")
                                 continue
 
                             try:
@@ -235,16 +250,20 @@ class Menu:
                             except Exception as err:
                                 print(f"unable to remove {
                                       username}:[error] {err}")
-                                logger.error(f"Unable to remove User '{username}' from task '{task.id}'({err})")
+                                logger.error(f"Unable to remove User '{
+                                             username}' from task '{task.id}'({err})")
                                 continue
 
                             print(f"{username} removed successfully!",
                                   style="success")
+                            task.add_to_history(
+                                Event(User.current, f"{user.username} was removed from the task"))
                             logger.success(f"User '{User.current.username}' removed user '{
                                            user.username}' from task '{task.id}'")
                         print("press enter to continue: ")
                         input()
                 case 6:
+                    old_priority = task.priority
                     options = sorted(list(Priority), key=lambda x: x.value)
                     message = str()
                     for option in options:
@@ -255,10 +274,14 @@ class Menu:
                         len(options)+1), return_type=int, cls=False)
                     if choice == 0:
                         continue
-                    task.priority = options[choice-1]
+                    new_priority = options[choice-1]
+                    task.priority = new_priority
+                    task.add_to_history(Event(User.current, f"task priority updated from {
+                                        old_priority.name} to {new_priority.name}"))
                     logger.success(f"User '{User.current.username}' updated task '{
                                    task.id}''s priority to '{task.priority.name}'")
                 case 7:
+                    old_status = task.status
                     options = sorted(list(Status), key=lambda x: x.value)
                     message = str()
                     for option in options:
@@ -269,29 +292,40 @@ class Menu:
                         len(options)+1), return_type=int, cls=False)
                     if choice == 0:
                         continue
-                    task.status = options[choice-1]
+                    new_status = options[choice-1]
+                    task.status = new_status
+                    task.add_to_history(Event(User.current, f"task status updated from {
+                                        old_status.name} to {new_status.name}"))
                     logger.success(f"User '{User.current.username}' updated task '{
                                    task.id}''s status to '{task.status.name}'")
                 case 8:
                     clear_screen()
                     print("History: ", task.name, style="title")
-                    for comment in task.history:
-                        print(comment)
+                    for event in task.history:
+                        print(event.time.strftime(
+                            TIME_FORMAT), style="dim", end=") ")
+                        try:
+                            print(f"done by [cyan]{event.user.username}[/] --> {
+                                event.content}    ", end="")
+                        except:
+                            main_print(f"{color_dict["cyan"]}{event.user.username}{
+                                color_dict["reset"]}: {event.content}    ", end="")
+                        print()
                     print("press enter to continue: ", end="")
                     input()
                 case 9:
                     while True:
                         clear_screen()
                         print("Comments: ", task.name, style="title")
-                        for comment in task.comments:
-                            print(comment.time.strftime(
+                        for event in task.comments:
+                            print(event.time.strftime(
                                 TIME_FORMAT), style="dim", end=") ")
                             try:
-                                print(f"[cyan]{comment.user.username}[/]: {
-                                    comment.content}    ", end="")
+                                print(f"[cyan]{event.user.username}[/]: {
+                                    event.content}    ", end="")
                             except:
-                                main_print(f"{color_dict["cyan"]}{comment.user.username}{
-                                           color_dict["reset"]}: {comment.content}    ", end="")
+                                main_print(f"{color_dict["cyan"]}{event.user.username}{
+                                           color_dict["reset"]}: {event.content}    ", end="")
                             print()
                         print("enter your comment (0 to go back): ", end="")
                         choice = input()
@@ -299,9 +333,11 @@ class Menu:
                             continue
                         if choice == "0":
                             break
-                        comment = Comment(User.current, choice)
+                        event = Comment(User.current, choice)
                         task.add_comment(Comment(User.current, choice))
-                        logger.success(f"User '{User.current}' added a comment on task '{task.id}'")
+                        save()
+                        logger.success(
+                            f"User '{User.current}' added a comment on task '{task.id}'")
                 case 10:
                     print(
                         "are you [warning]SURE[/] you want to remove this task? (y/n): ", end="")
@@ -319,12 +355,15 @@ class Menu:
                     input()
                 case 0:
                     return
+            save()
 
     @staticmethod
     def add_task(project: Project):
         task_name = input("enter task name: ")
         new_task = Task(task_name)
+        new_task.add_to_history(Event(User.current, "task was created"))
         project.add_task(new_task)
+        save()
         logger.success(f"User '{User.current.username}' added task '{
                        new_task.id}' to project '{project.id}'")
         Menu.display_task(project, new_task, True)
@@ -367,7 +406,8 @@ class Menu:
                         "add") or x.startswith("remove"))
                     adding = choice.startswith("add")
                     if choice == "0":
-                        logger.info(f"Adding/Removing members to/from project '{project.id}' canceled")
+                        logger.info(
+                            f"Adding/Removing members to/from project '{project.id}' canceled")
                         continue
                     elif adding:
                         usernames = choice[3:].split()
@@ -401,6 +441,7 @@ class Menu:
                     input()
                 case 0:
                     return project.leader == User.current
+            save()
 
     @staticmethod
     def display_project(project: Project, leading: bool):
@@ -416,9 +457,9 @@ class Menu:
                 x.name + f" {y+1}" for x in Status for y in range(len(project.partitioned()[x]))] + ["0"]
             message = ""
             if leading:
-                message += "1. Add Membeer  2. Remove Member    3. Add Task\n"
-                message += "4. Edit Info    5. Remove Project   0. Back\n"
-                included += [str(x) for x in range(1, 6)]
+                message += "1. Add Task         2. Edit Info\n"
+                message += "3. Remove Project   0. Back\n"
+                included += [str(x) for x in range(1, 4)]
             else:
                 message += "0. Back\n"
             message += "\nenter \"<status> <number>\" to specify a task"
@@ -432,35 +473,16 @@ class Menu:
                 pass
             match choice:
                 case 1:
-                    included = {0} | User.instances.keys(
-                    ) - {x.username for x in project.members} - {User.current.username}
-                    choice = get_input(
-                        message + "enter usernname (0 to cancel): ", included, operation=op)
-                    if choice == "0":
-                        logger.info(f"Adding member to project {project.id}' canceled")
-                        continue
-                    project.add_member(User(choice))
-                    logger.success(f"User '{User.current.username}' added user '{
-                        choice}' to project '{project.id}'")
-                case 2:
-                    choice = get_input(
-                        message + "enter username (0 to cancel): ", {0} | {x.username for x in project.members}, operation=op)
-                    if choice == "0":
-                        logger.info(f"Removing member from project '{project.id}' canceled")
-                        continue
-                    project.remove_member(User(choice))
-                    logger.success(f"User '{User.current.username}' removed user '{
-                        choice}' from project '{project.id}'")
-                case 3:
                     Menu.add_task(project)
-                case 4:
+                case 2:
                     if not Menu.edit_project(project):
                         leading = False
-                case 5:
+                case 3:
                     print(
                         "are you [warning]SURE[/] you want to remove this project? (y/n): ", end="")
                     if input() == "y":
                         project.remove()
+                        save()
                         logger.success(
                             f"User '{User.current.username}' removed project '{project.id}'")
                         return
@@ -517,7 +539,55 @@ class Menu:
 
     @staticmethod
     def edit_profile():
-        pass
+        user = User.current
+        # user = User()
+        while True:
+            clear_screen()
+
+            def op():
+                print(user.info_table())
+            choice = get_input("enter your choice: ", range(
+                5), operation=op, return_type=int)
+            match choice:
+                case 1:
+                    new_username = get_input(
+                        "enter new username (0 to cancel): ", excluded=User.instances.keys(), cls=False)
+                    if new_username == "0":
+                        continue
+                    user.change_username(new_username)
+                case 2:
+                    new_name = input("enter new name: ")
+                    if new_name:
+                        user.name = new_name
+                case 3:
+                    new_email = get_input("enter new email (0 to cancel): ", limiting_function=lambda x: x == "0" or email_is_valid(
+                        x) and x not in [x["email"] for x in User.instances.values()], error_message="email is invalid or already in use", cls=False)
+                    if new_email == "0":
+                        continue
+                    user.email = new_email
+                case 4:
+                    current_pass = get_input(
+                        "enter your current password (0 to cancel): ", included=[decrypted(user.password), "0"], error_message="wrong password", is_pass=True, cls=False)
+                    if current_pass == "0":
+                        continue
+
+                    new_pass = get_input(
+                        "enter your new password (0 to cancel): ", limiting_function=lambda x: x == "0" or pass_is_valid(
+                            x),
+                        error_message="password should be at least 6 characters including letters, digits and symbols (!@#$%...) and not any whitespaces`", is_pass=True, cls=False)
+                    if new_pass == "0":
+                        continue
+
+                    # checking password
+                    repeated_pass = get_input(
+                        "enter the new password again (0 to cancel): ", [new_pass, "0"], error_message="password doesn't match! try again", is_pass=True, cls=False)
+                    if repeated_pass == "0":
+                        continue
+                    new_pass = encrypted(new_pass)
+                    user.password = new_pass
+                case 0:
+                    return
+            save()
 
     @staticmethod
     def main():
