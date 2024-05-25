@@ -1,0 +1,14 @@
+cffi==1.16.0
+colorama==0.4.6
+cryptography==42.0.7
+iniconfig==2.0.0
+loguru==0.7.2
+markdown-it-py==3.0.0
+mdurl==0.1.2
+packaging==24.0
+pluggy==1.5.0
+pycparser==2.22
+Pygments==2.18.0
+pytest==8.2.1
+rich==13.7.1
+win32-setctime==1.1.0
