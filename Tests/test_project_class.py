@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from unittest.mock import patch, MagicMock, call
 from test_task_class import clear_instances, userfactory
-sys.path.append(str(Path.cwd()))
+sys.path.append(str(Path('Tests').resolve().parent))
 from base import *
 
 sample_projects = {

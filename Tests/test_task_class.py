@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-sys.path.append(str(Path.cwd()))
+sys.path.append(str(Path('Tests').resolve().parent))
 from base import *
 from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
