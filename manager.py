@@ -17,15 +17,18 @@ class SystemManager:
         data = dict(handeled_load_data(self.admin_file))
         if bool(data):
             console.print("An admin already exists!", style='error')
+            logger.error('Failed to create admin.(Admin already existed)')
             return
         if pass_is_valid(password):
             data[username] = encrypted(password)
             save_data(data, self.admin_file)
             console.print(
                 f"Admin '{username}' saved successfully.", style='success')
+            logger.success(f"Admin '{username}' has been created successfully")
         else:
             console.print(
                 "password should be at least 6 characters including letters, digits and symbols (!@#$%...) and not any whitespaces`", style='error')
+            logger.warning(f"Failed to create admin.(Bad password '{password}')")
 
     # Removes the existing admin:
     def remove_admin(self, username: str, password: str) -> None:
@@ -37,16 +40,22 @@ class SystemManager:
                 if choice:
                     save_data({}, self.admin_file)
                     console.print(
-                        f"admin '{username}' deleted successfully.", style='success')
+                        f"Admin '{username}' deleted successfully.", style='success')
+                    logger.success(f"admin '{username}' deleted successfully.")
                 else:
                     console.print("Operation canceled", style='warning')
+                    logger.info(f"Removing admin '{username}' canceled")
             else:
                 console.print("Invalid Password", style='error')
+                logger.warning(f"Removing admin '{username}' failed.(Invalid Password '{password}')")
         else:
             console.print("Admin does not exist!", style='error')
+            logger.error(f"Removing admin '{username}' failed.(Admin '{username}' does not exist!)")
 
     # Deletes all existing data:
     def purge_data(self) -> None:
+        admin_data = handeled_load_data(ADMIN_FILE_PATH)
+        username = admin_data.keys()[0]
         if self.is_admin():
             choice = get_bool_input(
                 "All data would be deleted\nProceed(Y/N): ", "Yy", "Nn", False
@@ -56,8 +65,10 @@ class SystemManager:
                 save_data({}, self.projects_file)
                 save_data({}, self.tasks_file)
                 console.print("Data purged successfully.", style='success')
+                logger.success(f"Admin '{username}' purged all data")
             else:
                 console.print("Operation canceled", style='warning')
+                logger.info("Purging data canceled")
 
     # Changing admin:
     def change(self, username: str, password: str) -> None:
@@ -65,9 +76,11 @@ class SystemManager:
             if pass_is_valid(password):
                 save_data({username: encrypted(password)}, self.admin_file)
                 console.print("Admin updated successfully!", style='success')
+                logger.success(f"Admin updated successfully!('{username}' is the new admin)")
             else:
                 console.print(
                     "password should be at least 6 characters including letters, digits and symbols (!@#$%...) and not any whitespaces`", style='error')
+                logger.warning(f"Changing admin failed.(Bad password '{password}')")
 
     # Confirms if current user is the admin:
     def is_admin(self) -> bool:
@@ -79,31 +92,68 @@ class SystemManager:
             verify = getpass("Password: ")
             if verify != old_pass:
                 console.print("Wrong password!", style='error')
+                logger.warning(f"Admin authentication failed.(Wrong password '{verify}')")
                 return False
             return True
         else:
             console.print("No admin exists", style='error')
+            logger.error("Admin authentication failed.(No admin exists)")
             return False
 
     # Diactivates the given user:
     def ban(self, username: str):
+        admin_data = handeled_load_data(ADMIN_FILE_PATH)
+        ad_username = admin_data.keys()[0]
         if self.is_admin():
             data = handeled_load_data(self.users_file)
             if username not in data.keys():
                 console.print(
                     f"User '{username}' does not exist!", style='error')
+                logger.error(f"Banning user failed.(user '{username}' does not exist)")
+                return
+            if data[username]['is_active'] == False:
+                console.print(
+                    f"User '{username}' is already banned!", style='error')
+                logger.error("Banning user failed.(User '{username}' is already banned)")
                 return
             data[username]['is_active'] = False
             save_data(data, self.users_file)
             console.print(f"User '{username}' banned", style='success')
+            logger.success(f"Admin '{ad_username}' banned user '{username}'")
+
+    # Activates users:
+    def unban(self, username: str):
+        admin_data = handeled_load_data(ADMIN_FILE_PATH)
+        ad_username = admin_data.keys()[0]
+        if self.is_admin():
+            data = handeled_load_data(self.users_file)
+            if username not in data.keys():
+                console.print(
+                    f"User '{username}' does not exist!", style='error')
+                logger.error(f"Unbanning failed.(User '{username}' does not exist)")
+                return
+            if data[username]['is_active'] == True:
+                console.print(
+                    f"User '{username}' is not banned!", style='error')
+                logger.error(f"Unbanning failed.(User '{username}' is not banned)")
+                return
+            data[username]['is_active'] = True
+            save_data(data, self.users_file)
+            console.print(f"User '{username}' unbanned", style='success')
+            logger.success(f"Admin '{ad_username}' unbanned user '{username}'")
 
     # Prints users:
-    def view(self, substring=''):
+    def view(self, substring='', banned_users=False):
         user_dict = handeled_load_data(self.users_file)
         i = 0
-        for username in user_dict.keys():
-            if substring in username:
-                console.print(f"{i+1}- {username}")
+        if not banned_users:
+            for username in user_dict.keys():
+                if substring in username:
+                    console.print(f"{i+1}- {username}")
+        else:
+            for username in user_dict.keys():
+                if user_dict[username]['is_active'] == False:
+                    console.print(f"{i+1}- {username}")
 
     # Creates a parser for managing system:
     def parser(self) -> argparse:
@@ -163,6 +213,13 @@ class SystemManager:
             "-u", "--username", required=True, help="User's username"
         )
 
+        # Unban user parser:
+        unban_parser = user_subparsers.add_parser(
+            name='unban', help='Unban users')
+        unban_parser.add_argument(
+            "-u", "--username", required=True, help="User's username"
+        )
+
         # View users:
         view_parser = user_subparsers.add_parser(
             name='view', help='View users')
@@ -171,6 +228,8 @@ class SystemManager:
             '-a', '--all', action='store_true', default=False, help='View all users')
         view_group.add_argument(
             '-s', '--search', help='View users with a certain substring')
+        view_group.add_argument(
+            '-b', '--banned', action='store_true', default=False, help='View banned users')
 
         # Purging data parser:
         purge_data_parser = subparsers.add_parser(
@@ -201,9 +260,14 @@ if __name__ == "__main__":
 
     elif args.subcommand == "user":
         if args.user_subcommand == "view":
-            if not args.all:
-                manager.view(args.search)
-            else:
+            if args.all:
                 manager.view('')
+            elif args.banned:
+                manager.view(banned_users=True)
+            else:
+                manager.view(args.search)
+
         elif args.user_subcommand == "ban":
             manager.ban(args.username)
+        elif args.user_subcommand == "unban":
+            manager.unban(args.username)
