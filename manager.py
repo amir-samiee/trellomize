@@ -7,10 +7,10 @@ console = console
 class SystemManager:
     def __init__(self, admin_file=ADMIN_FILE_PATH,
                  users_file=USERS_FILE_PATH, projects_file=PROJECTS_FILE_PATH, tasks_file=TASKS_FILE_PATH) -> None:
-        self.admin_data = admin_file
-        self.users_data = users_file
-        self.projects_data = projects_file
-        self.tasks_data = tasks_file
+        self.admin_file = admin_file
+        self.users_file = users_file
+        self.projects_file = projects_file
+        self.tasks_file = tasks_file
         self.data = handeled_load_data(ADMIN_FILE_PATH)
 
     # Adds new admin if non exists:
@@ -62,7 +62,7 @@ class SystemManager:
                 save_data({}, self.projects_file)
                 save_data({}, self.tasks_file)
                 console.print("Data purged successfully.", style='success')
-                logger.success(f"Admin '{self.data.keys()[0]}' purged all data")
+                logger.success(f"Admin '{list(self.data.keys())[0]}' purged all data")
             else:
                 console.print("Operation canceled", style='warning')
                 logger.info("Purging data canceled")
@@ -113,7 +113,7 @@ class SystemManager:
             data[username]['is_active'] = False
             save_data(data, self.users_file)
             console.print(f"User '{username}' banned", style='success')
-            logger.success(f"Admin '{self.data.keys()[0]}' banned user '{username}'")
+            logger.success(f"Admin '{list(self.data.keys())[0]}' banned user '{username}'")
 
     # Activates users:
     def unban(self, username: str):
@@ -132,7 +132,7 @@ class SystemManager:
             data[username]['is_active'] = True
             save_data(data, self.users_file)
             console.print(f"User '{username}' unbanned", style='success')
-            logger.success(f"Admin '{self.data.keys()[0]}' unbanned user '{username}'")
+            logger.success(f"Admin '{list(self.data.keys())[0]}' unbanned user '{username}'")
 
     # Prints users:
     def view(self, substring='', banned_users=False):
@@ -257,7 +257,7 @@ if __name__ == "__main__":
             elif args.banned:
                 manager.view(banned_users=True)
             else:
-                manager.view(args.search)
+                manager.view(args.search if args.search != None else '')
 
         elif args.user_subcommand == "ban":
             manager.ban(args.username)
