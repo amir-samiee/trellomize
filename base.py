@@ -157,6 +157,10 @@ class User:
                     comment = Task.instances[task.id]["comments"][i]
                     if comment[0] == old_username:
                         Task.instances[task.id]["comments"][i][0] = new_username
+                for i in range(len(Task.instances[task.id]["history"])):
+                    event = Task.instances[task.id]["history"][i]
+                    if event[0] == old_username:
+                        Task.instances[task.id]["history"][i][0] = new_username
         for project in self.leading:
             Project.instances[project.id]["leader"] = new_username
             for task in project.tasks:
@@ -164,9 +168,14 @@ class User:
                     comment = Task.instances[task.id]["comments"][i]
                     if comment[0] == old_username:
                         Task.instances[task.id]["comments"][i][0] = new_username
+                for i in range(len(Task.instances[task.id]["history"])):
+                    event = Task.instances[task.id]["history"][i]
+                    if event[0] == old_username:
+                        Task.instances[task.id]["history"][i][0] = new_username
         User.instances[new_username] = User.instances[old_username]
         User.instances.pop(old_username)
         self.username = new_username
+        save()
 
     def info_table(self) -> Table:
         table = Table(
