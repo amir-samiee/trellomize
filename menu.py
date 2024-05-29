@@ -142,7 +142,7 @@ class Menu:
                     task.name = new_name
                     task.add_to_history(Event(User.current, f"task renamed from {
                                         old_name} to {new_name}"))
-                    logger.success(f"User '{User.current.username}' updated task '{
+                    logger.success(f"User '{User.current.username}' Updated task '{
                                    task.id}''s name to '{task.name}'")
                 case 2:
                     old_description = task.description
@@ -155,7 +155,7 @@ class Menu:
                     task.description = new_description
                     task.add_to_history(Event(User.current, f"task description changed:\nold:\n{
                                         old_description}\nnew:\n{new_description}"))
-                    logger.success(f"User '{User.current.username}' updated task '{
+                    logger.success(f"User '{User.current.username}' Updated task '{
                                    task.id}''s description to '{task.description}'")
                 case 3:
                     old_start_time = task.start_time
@@ -172,7 +172,7 @@ class Menu:
                         new_start_time, TIME_FORMAT)
                     task.add_to_history(Event(User.current, f"task start time change from {
                                         old_start_time.strftime(TIME_FORMAT)} to {new_start_time}"))
-                    logger.success(f"User '{User.current.username}' updated task '{
+                    logger.success(f"User '{User.current.username}' Updated task '{
                                    task.id}''s start_time to '{task.start_time}'")
                 case 4:
                     old_end_time = task.end_time
@@ -188,8 +188,8 @@ class Menu:
                     task.end_time = datetime.strptime(
                         new_end_time, TIME_FORMAT)
                     task.add_to_history(Event(User.current, f"task end time changed from {
-                                        old_end_time.str(TIME_FORMAT)} to {new_end_time}"))
-                    logger.success(f"User '{User.current.username}' updated task '{
+                                        old_end_time.strftime(TIME_FORMAT)} to {new_end_time}"))
+                    logger.success(f"User '{User.current.username}' Updated task '{
                                    task.id}''s end-time to '{task.end_time}'")
                 case 5:
                     message = \
@@ -258,7 +258,7 @@ class Menu:
                                   style="success")
                             task.add_to_history(
                                 Event(User.current, f"{user.username} was removed from the task"))
-                            logger.success(f"User '{User.current.username}' removed user '{
+                            logger.success(f"User '{User.current.username}' Removed user '{
                                            user.username}' from task '{task.id}'")
                         print("press enter to continue: ")
                         input()
@@ -278,7 +278,7 @@ class Menu:
                     task.priority = new_priority
                     task.add_to_history(Event(User.current, f"task priority updated from {
                                         old_priority.name} to {new_priority.name}"))
-                    logger.success(f"User '{User.current.username}' updated task '{
+                    logger.success(f"User '{User.current.username}' Updated task '{
                                    task.id}''s priority to '{task.priority.name}'")
                 case 7:
                     old_status = task.status
@@ -296,14 +296,14 @@ class Menu:
                     task.status = new_status
                     task.add_to_history(Event(User.current, f"task status updated from {
                                         old_status.name} to {new_status.name}"))
-                    logger.success(f"User '{User.current.username}' updated task '{
+                    logger.success(f"User '{User.current.username}' Updated task '{
                                    task.id}''s status to '{task.status.name}'")
                 case 8:
                     clear_screen()
                     print("History: ", task.name, style="title")
                     for event in task.history:
                         print(event.time.strftime(
-                            TIME_FORMAT), style="dim", end=") ")
+                            TIME_FORMAT), style="dim", end="| ")
                         try:
                             print(f"done by [cyan]{event.user.username}[/] --> {
                                 event.content}    ", end="")
@@ -344,7 +344,7 @@ class Menu:
                     if input() == "y":
                         project.remove_task(task)
                         logger.success(
-                            f"User '{User.current.username}' removed task '{task.id}'")
+                            f"User '{User.current.username}' Removed task '{task.id}'")
                         print(
                             "[success]task was successfully removed![/] press enter to continue: ", end="")
                         input()
@@ -364,7 +364,7 @@ class Menu:
         new_task.add_to_history(Event(User.current, "task was created"))
         project.add_task(new_task)
         save()
-        logger.success(f"User '{User.current.username}' added task '{
+        logger.success(f"User '{User.current.username}' Added task '{
                        new_task.id}' to project '{project.id}'")
         Menu.display_task(project, new_task, True)
 
@@ -435,7 +435,7 @@ class Menu:
 
                         print(f"{username} {"added" if adding else "removed"} successfully!",
                               style="success")
-                        logger.success(f"User '{User.current.username}' {"added" if adding else "removed"} user '{
+                        logger.success(f"User '{User.current.username}' {"Added" if adding else "Removed"} user '{
                             user.username}' {"to" if adding else "from"} project '{project.id}'")
                     print("press enter to continue: ")
                     input()
@@ -484,7 +484,7 @@ class Menu:
                         project.remove()
                         save()
                         logger.success(
-                            f"User '{User.current.username}' removed project '{project.id}'")
+                            f"User '{User.current.username}' Removed project '{project.id}'")
                         return
                     logger.info(f"Removing project '{project.id}' canceled")
                     print(
