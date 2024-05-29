@@ -5,3 +5,4 @@ tester*
 Trellomize.pdf
 *.json
 *.log
+secret.key
