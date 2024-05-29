@@ -7,6 +7,7 @@ if __name__ == "__main__":
         Menu.starting()
     except ValueError as er:
         logger.exception(er)
+        print("\nAn error occured!", style="error")
     except KeyboardInterrupt:
-        print("Exiting the program...", style="warning")
+        print("\nExiting the program...", style="warning")
         save()
