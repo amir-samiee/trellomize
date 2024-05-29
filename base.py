@@ -663,6 +663,11 @@ class Project:
         # Removing the user:
         user.involved -= {self}
 
+        # Removing user from tasks:
+        for task in self.tasks:
+            if user in task.members:
+                task.members -= {user}
+
         if is_viewed:
             console.print(f"User '{user.username}' removed from project",
                           f"'{self.title}'", style='success', sep=' ')
