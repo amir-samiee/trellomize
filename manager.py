@@ -28,7 +28,8 @@ class SystemManager:
         else:
             console.print(
                 "password should be at least 6 characters including letters, digits and symbols (!@#$%...) and not any whitespaces`", style='error')
-            logger.warning(f"Failed to create admin.(Bad password '{password}')")
+            logger.warning(
+                f"Failed to create admin.(Bad password '{password}')")
 
     # Removes the existing admin:
     def remove_admin(self, username: str, password: str) -> None:
@@ -46,10 +47,12 @@ class SystemManager:
                     logger.info(f"Removing admin '{username}' canceled")
             else:
                 console.print("Invalid Password", style='error')
-                logger.warning(f"Removing admin '{username}' failed.(Invalid Password '{password}')")
+                logger.warning(f"Removing admin '{
+                               username}' failed.(Invalid Password '{password}')")
         else:
             console.print("Admin does not exist!", style='error')
-            logger.error(f"Removing admin '{username}' failed.(Admin '{username}' does not exist!)")
+            logger.error(f"Removing admin '{
+                         username}' failed.(Admin '{username}' does not exist!)")
 
     # Deletes all existing data:
     def purge_data(self) -> None:
@@ -62,7 +65,8 @@ class SystemManager:
                 save_data({}, self.projects_file)
                 save_data({}, self.tasks_file)
                 console.print("Data purged successfully.", style='success')
-                logger.success(f"Admin '{list(self.data.keys())[0]}' purged all data")
+                logger.success(
+                    f"Admin '{list(self.data.keys())[0]}' purged all data")
             else:
                 console.print("Operation canceled", style='warning')
                 logger.info("Purging data canceled")
@@ -73,11 +77,13 @@ class SystemManager:
             if pass_is_valid(password):
                 save_data({username: encrypted(password)}, self.admin_file)
                 console.print("Admin updated successfully!", style='success')
-                logger.success(f"Admin updated successfully!('{username}' is the new admin)")
+                logger.success(f"Admin updated successfully!('{
+                               username}' is the new admin)")
             else:
                 console.print(
                     "password should be at least 6 characters including letters, digits and symbols (!@#$%...) and not any whitespaces`", style='error')
-                logger.warning(f"Changing admin failed.(Bad password '{password}')")
+                logger.warning(
+                    f"Changing admin failed.(Bad password '{password}')")
 
     # Confirms if current user is the admin:
     def is_admin(self) -> bool:
@@ -88,7 +94,8 @@ class SystemManager:
             verify = getpass("Password: ")
             if verify != old_pass:
                 console.print("Wrong password!", style='error')
-                logger.warning(f"Admin authentication failed.(Wrong password '{verify}')")
+                logger.warning(
+                    f"Admin authentication failed.(Wrong password '{verify}')")
                 return False
             return True
         else:
@@ -103,17 +110,20 @@ class SystemManager:
             if username not in data.keys():
                 console.print(
                     f"User '{username}' does not exist!", style='error')
-                logger.error(f"Banning user failed.(user '{username}' does not exist)")
+                logger.error(f"Banning user failed.(user '{
+                             username}' does not exist)")
                 return
             if data[username]['is_active'] == False:
                 console.print(
                     f"User '{username}' is already banned!", style='error')
-                logger.error(f"Banning user failed.(User '{username}' is already banned)")
+                logger.error(f"Banning user failed.(User '{
+                             username}' is already banned)")
                 return
             data[username]['is_active'] = False
             save_data(data, self.users_file)
             console.print(f"User '{username}' banned", style='success')
-            logger.success(f"Admin '{list(self.data.keys())[0]}' banned user '{username}'")
+            logger.success(f"Admin '{list(self.data.keys())[
+                           0]}' banned user '{username}'")
 
     # Activates users:
     def unban(self, username: str):
@@ -122,17 +132,20 @@ class SystemManager:
             if username not in data.keys():
                 console.print(
                     f"User '{username}' does not exist!", style='error')
-                logger.error(f"Unbanning failed.(User '{username}' does not exist)")
+                logger.error(f"Unbanning failed.(User '{
+                             username}' does not exist)")
                 return
             if data[username]['is_active'] == True:
                 console.print(
                     f"User '{username}' is not banned!", style='error')
-                logger.error(f"Unbanning failed.(User '{username}' is not banned)")
+                logger.error(f"Unbanning failed.(User '{
+                             username}' is not banned)")
                 return
             data[username]['is_active'] = True
             save_data(data, self.users_file)
             console.print(f"User '{username}' unbanned", style='success')
-            logger.success(f"Admin '{list(self.data.keys())[0]}' unbanned user '{username}'")
+            logger.success(f"Admin '{list(self.data.keys())[
+                           0]}' unbanned user '{username}'")
 
     # Prints users:
     def view(self, substring='', banned_users=False):
@@ -142,10 +155,12 @@ class SystemManager:
             for username in user_dict.keys():
                 if substring in username:
                     console.print(f"{i+1}- {username}")
+                    i += 1
         else:
             for username in user_dict.keys():
                 if user_dict[username]['is_active'] == False:
                     console.print(f"{i+1}- {username}")
+                    i += 1
 
     # Creates a parser for managing system:
     def parser(self) -> argparse:
